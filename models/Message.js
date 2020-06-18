@@ -16,6 +16,10 @@ const MessageSchema = new mongoose.Schema({
     message_file:{
         type: String
 
+    },
+    time: {
+        type: Date,
+        default: Date.now()
     }
 });
 

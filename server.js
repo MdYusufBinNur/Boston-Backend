@@ -29,6 +29,7 @@ app.use('/api/loan_type',require('./routes/api/loan'));
 app.use('/api/appraisal_type',require('./routes/api/appraisal'));
 app.use('/api/order',require('./routes/api/order'));
 app.use('/api/client',require('./routes/api/client'));
+app.use('/api/message',require('./routes/api/message'));
 
 
 
