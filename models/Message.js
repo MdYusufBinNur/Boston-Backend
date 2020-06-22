@@ -5,9 +5,19 @@ const MessageSchema = new mongoose.Schema({
         ref: 'user',
         required: true
     },
+    sender_profile: {
+        type: mongoose.Schema.Types.ObjectID,
+        ref: 'profile',
+        required: true
+    },
     receiver: {
         type: mongoose.Schema.Types.ObjectID,
         ref: 'user',
+        required: true
+    },
+    receiver_profile: {
+        type: mongoose.Schema.Types.ObjectID,
+        ref: 'profile',
         required: true
     },
     message_text:{

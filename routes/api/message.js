@@ -3,6 +3,7 @@ const auth = require('../../middleware/auth');
 const router = express.Router();
 const {check, validationResult} = require('express-validator');
 const Message = require('../../models/Message');
+const Profile = require('../../models/Profile');
 const multer = require('multer');
 
 const storage = multer.diskStorage({
@@ -61,10 +62,22 @@ router.post('/',
         if (req.user.id){
             messageFields.sender = req.user.id;
         }
+        if (req.user.profileId){
+            messageFields.sender_profile = req.user.profileId;
+        }
+        /* Have to save profile ID in receiver and sender so that we can get user info easily*/
         if (receiver) messageFields.receiver = receiver;
+        if (receiver)
+        {
+            const receiver_profile = await Profile.findOne({user: receiver});
+            if (receiver_profile){
+                messageFields.receiver_profile = receiver_profile.id;
+            }
+        }
         if (message_text) messageFields.message_text = message_text;
         messageFields.message_file = req.file.path;
 
+        //return res.send(req.user);
         let message = new Message(messageFields);
         //return res.send(messageFields);
         if (await message.save()) {
@@ -79,7 +92,23 @@ router.post('/',
 router.get('/',auth, async (req, res) => {
     try{
         if (req.user.id){
-            const message = await Message.find({sender: req.user.id}).populate(['sender','receiver'])
+            const message = await Message.find({sender: req.user.id}).select('-sender').select('-receiver')
+                .populate({
+                    path: 'sender_profile',
+                    select: ['user','username','first_name','last_name'],
+                    populate: {
+                        path: 'user',
+                        select: ['user_type','email']
+                    }
+                })
+                .populate({
+                    path: 'receiver_profile',
+                    select: ['user','username','first_name','last_name'],
+                    populate: {
+                        path: 'user',
+                        select: ['user_type','email']
+                    }
+                });
             return await res.json(message);
         }
     }catch (e) {

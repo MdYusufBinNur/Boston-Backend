@@ -267,7 +267,7 @@ router.get(
     '/',auth,
     async (req, res) => {
         try {
-            const order = await Order.find().populate(['order_generated_by',['email'],'loan_type']).select('-password');
+            const order = await Order.find().populate('loan_type').populate('order_generated_by',['email']).select('-password');
             return await res.json(order);
 
         } catch (e) {

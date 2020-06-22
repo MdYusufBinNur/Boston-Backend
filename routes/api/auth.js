@@ -8,6 +8,7 @@ const { check, validationResult } = require('express-validator');
 var cors = require('cors');
 router.use(cors());
 const User = require('../../models/User');
+const Profile = require('../../models/Profile');
 //@route GET api/auth
 //@desc  Test route
 //@access  Public
@@ -52,10 +53,12 @@ router.post(
                 return  res.status(400).json({ errors: [{ msg: 'Invalid Credentials' }]});
             }
 
+            const profileId = await Profile.findOne({user: user.id});
             const payload ={
                 user: {
                     id: user.id,
-                    type: user.user_type
+                    type: user.user_type,
+                    profileId: profileId.id
                 }
             };
             jwt.sign(payload,

@@ -95,9 +95,9 @@ router.post(
             let profile = new Profile(profileFields);
             await profile.save();
 
-            const payload = {
+     /*       const payload = {
                 user: {
-                    id: user.id
+                    id: user.id,
                 }
             };
             jwt.sign(payload,
@@ -106,9 +106,9 @@ router.post(
                 (err, token) => {
                     if (err) throw err;
                     res.json({token})
-                });
+                });*/
 
-
+            return res.status(200).json({msg: "New User Saved Successfully"})
             //Return jsonwebtoken
             //res.send('User Registered')
         } catch (err) {
