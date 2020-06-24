@@ -26,7 +26,7 @@ router.post('/',
         const {
             appraisal_name,
             appraisal_details,
-            appraisal_fee
+            appraisal_price
         } = req.body;
 
         try {
@@ -43,7 +43,7 @@ router.post('/',
             const appraisalTypeFields = {}
             if (appraisal_name) appraisalTypeFields.appraisal_name = appraisal_name;
             if (appraisal_details) appraisalTypeFields.appraisal_details = appraisal_details;
-            if (appraisal_fee) appraisalTypeFields.appraisal_fee = appraisal_fee;
+            if (appraisal_price) appraisalTypeFields.appraisal_price = appraisal_price;
 
             appraisal_type = new AppraisalType(appraisalTypeFields);
             if (await appraisal_type.save()) {
@@ -91,7 +91,7 @@ router.put('/update/:appraisal_type_id',
         const {
             appraisal_name,
             appraisal_details,
-            appraisal_fee
+            appraisal_price
         } = req.body;
 
         try {
@@ -101,7 +101,7 @@ router.put('/update/:appraisal_type_id',
             const appraisalTypeFields = {};
             if (appraisal_name) appraisalTypeFields.appraisal_name = appraisal_name;
             if (appraisal_details) appraisalTypeFields.appraisal_details = appraisal_details;
-            if (appraisal_fee) appraisalTypeFields.appraisal_fee = appraisal_fee;
+            if (appraisal_price) appraisalTypeFields.appraisal_price = appraisal_price;
 
             if (await AppraisalType.findOneAndUpdate({_id : req.params.appraisal_type_id},{$set: appraisalTypeFields}, {new : true})){
                 return res.status(200).json({ msg : 'Appraisal Name Updated'});
