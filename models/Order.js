@@ -163,6 +163,10 @@ const OrderSchema = new mongoose.Schema({
     order_generated_by:{
         type: mongoose.Schema.Types.ObjectID,
         ref: 'user'
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 
 });

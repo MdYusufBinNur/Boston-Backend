@@ -12,6 +12,10 @@ const InvoiceSchema = new mongoose.Schema({
         required: true
     },
 
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
     invoice_id:{
         type: String,
         required: true,
@@ -58,10 +62,12 @@ const InvoiceSchema = new mongoose.Schema({
     description:{
         type: [String]
     },
+
     appraisal_fee: {
         type: [String],
         required: true
     },
+
     price: {
         type: [String],
         required: true
@@ -70,6 +76,7 @@ const InvoiceSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+
     due_amount:{
         type: [String],
         default: 0

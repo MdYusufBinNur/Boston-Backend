@@ -65,6 +65,10 @@ const ClientSchema = new mongoose.Schema({
     },
     client_web_url:{
         type: String
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 
 });
