@@ -3,7 +3,8 @@ const OrderSchema = new mongoose.Schema({
 
     order_no: {
         type: String,
-        default: "BAS----"
+        default: "BAS----",
+        unique: true
     },
 
     order_status: {
@@ -14,6 +15,7 @@ const OrderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectID,
         ref: 'client'
     },
+
 
     lender_or_bank_name: {
         type: String,
@@ -106,13 +108,19 @@ const OrderSchema = new mongoose.Schema({
         ref: 'appraisal_type'
     },
 
+    price: {
+        type: String,
+        required: true
+    },
+
     loan: {
         type: String
     },
 
     client_order: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
 
     loan_type: {

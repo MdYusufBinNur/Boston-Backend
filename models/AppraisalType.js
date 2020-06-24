@@ -5,7 +5,7 @@ const AppraisalSchema = new mongoose.Schema({
        required: true
    },
 
-    appraisal_fee: {
+    appraisal_price: {
        type: String
     },
 
