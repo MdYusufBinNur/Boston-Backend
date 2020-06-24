@@ -25,16 +25,20 @@ const ClientSchema = new mongoose.Schema({
         required: true
     },
     address: {
-        type: String
+        type: String,
+        required: true
     },
     city: {
-        type: String
+        type: String,
+        required: true
     },
     state: {
-        type: String
+        type: String,
+        required: true
     },
     zip_code: {
-        type: String
+        type: String,
+        required: true
     },
 
     phones: {

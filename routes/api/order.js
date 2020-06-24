@@ -3,6 +3,8 @@ const auth = require('../../middleware/auth');
 const router = express.Router();
 const {check, validationResult} = require('express-validator');
 const Order = require('../../models/Order');
+const Client = require('../../models/Client');
+const Invoice = require('../../models/Invoice');
 const multer = require('multer');
 
 const storage = multer.diskStorage({
@@ -55,9 +57,10 @@ router.post('/',
             check('client_order', 'Client order is required').not().isEmpty(),
             check('loan_type', 'Loan type is required').not().isEmpty(),
             check('appraisar_name', 'Appraisar name is required').not().isEmpty(),
-            check('order_form', 'Order Form is required').not().isEmpty()
-
+            // check('order_form', 'Order Form is required').not().isEmpty(),
+            check('price', 'Appraisal Price is required').not().isEmpty()
         ],
+
         upload.single('order_form'),
     ],
     async (req, res, next) => {
@@ -99,13 +102,39 @@ router.post('/',
             due_date,
             order_form,
             note,
-            order_status
+            order_status,
+            price,
+            total_amount
 
         } = req.body;
         try {
 
             // Save Order In DB
             const orderFields = {};
+            const invoiceFields = {};
+
+            let invoiceId = generate_invoice();
+            let newOrderNo = generate_order_no();
+            let clientOrderNo = generate_client_order();
+            const client_info = await Client.findOne({_id: client});
+            if (!client_info)
+            {
+                return res.send({msg: "No Client Found"});
+            }
+
+
+            if (await Order.findOne({order_no: newOrderNo})){
+                newOrderNo = generate_invoice();
+            }
+
+            if (await Order.findOne({client_order: clientOrderNo})){
+                clientOrderNo = generate_client_order();
+            }
+
+            if (await Invoice.findOne({invoice_id: invoiceId})){
+                invoiceId = generate_invoice();
+            }
+
             if (req.user.id){
                 orderFields.order_generated_by = req.user.id;
             }
@@ -128,29 +157,44 @@ router.post('/',
             if (contact_person_name) orderFields.contact_person_name = contact_person_name;
             if (contact_person_phone) orderFields.contact_person_phone = contact_person_phone;
             if (contact_person_email) orderFields.contact_person_email = contact_person_email;
-
+            if (price) orderFields.price = price;
             if (appraisal_type) {
                 orderFields.appraisal_type = appraisal_type.split(',').map(appraisal_type => appraisal_type.trim());
             }
-
             if (loan) orderFields.loan = loan;
-            if (client_order) orderFields.client_order = client_order;
             if (loan_type) orderFields.loan_type = loan_type;
             if (appraisal_fee) orderFields.appraisal_fee = appraisal_fee;
             if (appraisar_name) orderFields.appraisar_name = appraisar_name;
             if (due_date) orderFields.due_date = due_date;
-
             if (note) orderFields.note = note;
             if (order_status) orderFields.order_status = order_status;
             orderFields.order_form = req.file.path;
-            orderFields.order_no = "BAS"+Math.floor(10000 + Math.random() * 90000);
-           // return res.send(orderFields)
+            orderFields.client_order = clientOrderNo;
+            orderFields.order_no = newOrderNo;
 
             let order = new Order(orderFields);
             if (await order.save()) {
-                return res.status(200).json({msg: 'New Order Has Been Placed Successfully'});
+                invoiceFields.client = client;
+                invoiceFields.order = order.id;
+                invoiceFields.invoice_id = invoiceId;
+                invoiceFields.client_order = order.client_order;
+                invoiceFields.order_no = order.order_no;
+                invoiceFields.city = client_info.city;
+                invoiceFields.address_one = client_info.address;
+                invoiceFields.state = client_info.state;
+                invoiceFields.zip_code = client_info.zip_code;
+                invoiceFields.phone = client_info.phones;
+                invoiceFields.description = order.appraisal_type;
+                invoiceFields.price = order.price;
+                invoiceFields.appraisal_fee = order.appraisal_fee;
+                if (total_amount) invoiceFields.total_amount = total_amount;
+                let invoice = new Invoice(invoiceFields);
+                if (await invoice.save())
+                {
+                    return res.status(200).json({msg: "New order has been placed successfully, Invoice  " + invoice.invoice_id});
+                }
+                return res.send({error: "Order Placed But Failed To Generate Invoice !!!"})
             }
-
         } catch (err) {
             console.error(err.message);
             return res.status(500).send(err.message);
@@ -158,6 +202,23 @@ router.post('/',
     }
 );
 
+function generate_invoice()
+{
+    return "INV" + Math.floor(1000 + Math.random() * 9000) + new Date().getFullYear().toString()
+        + new Date().getMilliseconds().toString();
+}
+
+function generate_order_no()
+{
+    return "BAS"+Math.floor(10000 + Math.random() * 90000) + new Date().getMilliseconds().toString();
+
+}
+
+function generate_client_order()
+{
+    return  Math.floor(10000 + Math.random() * 90000) + new Date().getMilliseconds().toString();
+
+}
 //@route PUT api/order/update
 //@access Private
 //@desc Update Order Module
@@ -202,7 +263,8 @@ router.put('/update/:order_id',
             last_call_date,
             order_form,
             note,
-            order_status
+            order_status,
+            price
         } = req.body;
 
         try {
@@ -223,6 +285,7 @@ router.put('/update/:order_id',
             if (property_on_map) orderFields.property_on_map = property_on_map;
             if (borrower_name) orderFields.borrower_name = borrower_name;
             if (co_borrower_name) orderFields.co_borrower_name = co_borrower_name;
+            if (price) orderFields.price = price;
             if (borrower_phone) {
                 orderFields.borrower_phone = borrower_phone.split(',').map(borrower_phone => borrower_phone.trim());
             }
