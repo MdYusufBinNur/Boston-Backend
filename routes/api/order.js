@@ -331,7 +331,7 @@ router.get(
     '/',auth,
     async (req, res) => {
         try {
-            const order = await Order.find().populate('loan_type').populate('order_generated_by',['email']).select('-password');
+            const order = await Order.find({isDeleted: false}).populate('loan_type').populate('order_generated_by',['email']).select('-password');
             return await res.json(order);
 
         } catch (e) {
@@ -354,7 +354,25 @@ router.get('/:order_id',
             return res.status(500).send("Server Error")
         }
     });
-
+//@route DELETE api/order/delete
+//@desc  Delete Order
+//@access  Private
+router.delete('/delete/:order_id', auth, async (req, res) => {
+    try {
+        if (req.user.type !== 'Admin'){
+            return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
+        }
+        const orderFields ={};
+        orderFields.isDeleted =true;
+        if (await Order.findOneAndUpdate({_id: req.params.order_id},{$set: orderFields})){
+            return  res.json({msg: "Order Deleted Successfully"});
+        }
+        return res.status(500).json({ msg: "Something went wrong !!"})
+    } catch (e) {
+        console.error(e.message);
+        res.status(500).send("Server Error")
+    }
+});
 //@route DELETE api/order
 //@desc  Delete Order
 //@access  Private
