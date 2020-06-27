@@ -7,6 +7,9 @@ const SliderSchema = new mongoose.Schema({
     slider_details: {
         type: String,
     },
+    slider_position: {
+      type: String,
+    },
     slider_image: {
         type: String,
         required: true
