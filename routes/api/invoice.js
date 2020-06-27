@@ -61,9 +61,11 @@ router.post('/',
             price,
             total_amount,
             appraisal_fee,
+            isDeleted
 
         } = req.body;
         try {
+
             const invoiceFields = {};
             let invoiceId = generate_invoice();
             if (await Invoice.findOne({invoice_id: invoiceId})) {
@@ -81,6 +83,7 @@ router.post('/',
             if (state) invoiceFields.state = state;
             if (zip_code) invoiceFields.zip_code = zip_code;
             if (phone) invoiceFields.phone = phone;
+            if (isDeleted) invoiceFields.isDeleted = isDeleted;
 
             if (description) {
                 invoiceFields.description = description.split(',').map(description => description.trim());
@@ -125,6 +128,38 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
+//Get All Deleted Invoice
+//Access Private
+router.get('/deleted', auth, async (req, res) => {
+    try {
+        if (req.user.type !== 'Admin'){
+            return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
+        }
+        const invoices = await Invoice.find({isDeleted: true})
+            .populate('client');
+        return await res.json(invoices);
+
+    } catch (e) {
+        console.error(e.message);
+        return res.status(500).send("Server Error")
+    }
+});
+
+
+
+//Get All Deleted Invoice
+//Access Private
+router.get('/deleted_all', auth, async (req, res) => {
+    try {
+        const invoices = await Invoice.find({isDeleted: true})
+            .populate('client');
+        return await res.json(invoices);
+
+    } catch (e) {
+        console.error(e.message);
+        return res.status(500).send("Server Error")
+    }
+});
 
 //Update Invoice
 //Access Private

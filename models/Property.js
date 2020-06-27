@@ -7,7 +7,11 @@ const PropertySchema = new mongoose.Schema({
    },
    property_details: {
        type: String
-   }
+   },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    }
 });
 
 module.exports = Property = mongoose.model('property', PropertySchema);

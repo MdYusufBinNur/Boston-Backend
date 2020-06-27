@@ -11,6 +11,10 @@ const AppraisalSchema = new mongoose.Schema({
 
     appraisal_details:{
        type: String
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 });
 module.exports = AppraisalType = mongoose.model('appraisal_type', AppraisalSchema);

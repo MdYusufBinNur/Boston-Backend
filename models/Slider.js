@@ -10,6 +10,10 @@ const SliderSchema = new mongoose.Schema({
     slider_image: {
         type: String,
         required: true
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 });
 

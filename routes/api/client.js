@@ -80,7 +80,7 @@ router.post(
             password,
             comment,
             username,
-            client_web_url
+            client_web_url,
         } = req.body;
 
         try {
@@ -136,7 +136,26 @@ router.get(
     '/', auth,
     async (req, res) => {
         try {
-            const client = await Client.find();
+            const client = await Client.find({isDeleted: false});
+            await res.json(client);
+
+        } catch (e) {
+            console.error(e.message);
+            res.status(500).send("Server Error")
+        }
+    });
+
+//@route GET api/client/deleted_all
+//@desc  Get All Deleted Client
+//@access  Private
+router.get(
+    '/deleted_all', auth,
+    async (req, res) => {
+        try {
+            if (req.user.type !== 'Admin'){
+                return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
+            }
+            const client = await Client.find({isDeleted: true});
             await res.json(client);
 
         } catch (e) {
@@ -173,7 +192,8 @@ router.put('/update/:client_id',
             fax_no,
             comment,
             username,
-            client_web_url
+            client_web_url,
+            isDeleted
         } = req.body;
 
         try {
@@ -201,6 +221,7 @@ router.put('/update/:client_id',
             if (cell_no) ClientFields.cell_no = cell_no;
             if (comment) ClientFields.comment = comment;
             if (client_web_url) ClientFields.client_web_url = client_web_url;
+            if (isDeleted) ClientFields.isDeleted = isDeleted;
 
 
             if (await Client.findOneAndUpdate({_id : req.params.client_id},{$set: ClientFields}, {new : true})){
@@ -216,6 +237,25 @@ router.put('/update/:client_id',
 
     });
 
+//@route SOFT DELETE api/client/delete
+//@desc  Delete Client
+//@access  Private
+router.delete('/delete/:client_id', auth, upload.any(), async (req, res) => {
+    try {
+        if (req.user.type !== 'Admin'){
+            return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
+        }
+        let clientFields = {};
+        clientFields.isDeleted = true;
+        if (await Client.findOneAndUpdate({_id: req.params.client_id},{$set: clientFields})){
+            return await res.json({msg: "Client Deleted Successfully"});
+        }
+        return res.status(500).json({ msg: "Something went wrong !!"})
+    } catch (e) {
+        console.error(e.message);
+        res.status(500).send("Server Error")
+    }
+});
 //@route DELETE api/client
 //@desc  Delete Client
 //@access  Private

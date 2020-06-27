@@ -265,7 +265,8 @@ router.put('/update/:order_id',
             order_form,
             note,
             order_status,
-            price
+            price,
+            isDeleted
         } = req.body;
 
         try {
@@ -313,6 +314,7 @@ router.put('/update/:order_id',
             if (order_form) orderFields.order_form = order_form;
             if (note) orderFields.note = note;
             if (order_status) orderFields.order_status = order_status;
+            if (isDeleted) orderFields.isDeleted = isDeleted;
             if (order_form) orderFields.order_form = req.file.path;
             if (await Order.findOneAndUpdate({_id : req.params.order_id},{$set: orderFields}, {new : true})){
                 return res.status(200).json({ msg : 'Order Updated'});
@@ -340,6 +342,25 @@ router.get(
         }
     });
 
+//Get All Deleted Orders
+//Access private
+router.get(
+    '/deleted_all',auth,
+    async (req, res) => {
+        try {
+            if (req.user.type !== 'Admin'){
+                return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
+            }
+
+            const order = await Order.find({isDeleted: true}).populate('loan_type').populate('order_generated_by',['email']).select('-password');
+            return await res.json(order);
+
+        } catch (e) {
+            console.error(e.message);
+            return res.status(500).send("Server Error")
+        }
+    });
+
 
 //Get a specific order
 //Access Private
@@ -355,7 +376,7 @@ router.get('/:order_id',
         }
     });
 //@route DELETE api/order/delete
-//@desc  Delete Order
+//@desc  Soft Delete Order
 //@access  Private
 router.delete('/delete/:order_id', auth, async (req, res) => {
     try {

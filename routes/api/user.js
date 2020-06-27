@@ -147,7 +147,25 @@ router.get(
     '/profiles/',
     async (req, res) => {
         try {
-            const profile = await Profile.find().populate('user', ['email', 'avatar', 'active','user_type']);
+            const profile = await Profile.find({isDeleted: false}).populate('user', ['email', 'avatar', 'active','user_type']);
+            await res.json(profile);
+
+        } catch (e) {
+            console.error(e.message);
+            res.status(500).send("Server Error")
+        }
+    });
+//@route GET api/profile
+//@desc  Get All Profiles
+//@access  Public
+router.get(
+    '/deleted_all',
+    async (req, res) => {
+        try {
+            if (req.user.type !== 'Admin'){
+                return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
+            }
+            const profile = await Profile.find({isDeleted: true}).populate('user', ['email', 'avatar', 'active','user_type']);
             await res.json(profile);
 
         } catch (e) {
@@ -211,7 +229,8 @@ router.put('/update/:user_id',
             cell_no,
             fax_no,
             comment,
-            username
+            username,
+            isDeleted
         } = req.body;
 
         try {
@@ -237,6 +256,7 @@ router.put('/update/:user_id',
             }
             if (cell_no) profileFields.cell_no = cell_no;
             if (comment) profileFields.comment = comment;
+            if (isDeleted) profileFields.isDeleted = isDeleted;
 
             if (user_type) userFields.user_type = user_type;
             //See if user already exist
