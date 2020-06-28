@@ -18,8 +18,7 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
     // reject a file
-
-    //cb(null, true);
+    cb(null, true);
     if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
         cb(null, true);
     } else {
@@ -48,14 +47,18 @@ router.post('/',
         const {
             slider_title,
             slider_details,
-            slide_position
+            slider_position
         } = req.body;
 
         try{
+            if(!req.file)
+            {
+                return res.status(500).send("Slider Image Is Required");
+            }
             const sliderFields ={};
             if (slider_title) sliderFields.slider_title = slider_title;
             if (slider_details) sliderFields.slider_details = slider_details;
-            if (slide_position) sliderFields.slide_position = slide_position;
+            if (slider_position) sliderFields.slide_position = slider_position;
             sliderFields.slider_image = req.file.path;
 
             let slider = new Slider(sliderFields);
@@ -79,7 +82,7 @@ router.put('/:slider_id', [
     const {
         slider_title,
         slider_details,
-        slide_position,
+        slider_position,
         isDeleted,
     } = req.body;
 
@@ -87,9 +90,9 @@ router.put('/:slider_id', [
         const sliderFields ={};
         if (slider_title) sliderFields.slider_title = slider_title;
         if (slider_details) sliderFields.slider_details = slider_details;
-        if (slide_position) sliderFields.slide_position = slide_position;
+        if (slider_position) sliderFields.slide_position = slider_position;
         if (isDeleted) sliderFields.isDeleted = isDeleted;
-        if (req.file.path) sliderFields.slider_image = req.file.path;
+        if (req.file) sliderFields.slider_image = req.file.path;
 
         if (await Slider.findOneAndUpdate(
             {_id: req.params.slider_id},

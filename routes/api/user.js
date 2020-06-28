@@ -123,7 +123,7 @@ router.post(
 //@desc  Get Current user Profile
 //@access  private
 router.get(
-    '/myprofile',
+    '/myProfile',
     auth,
     async (req, res) => {
         try {
@@ -268,14 +268,14 @@ router.put('/update/:user_id',
 
                 user = await User.findOneAndUpdate({_id: req.params.user_id},
                     {$set: userFields},
-                    {new: true})
+                    {new: true});
                 profileUpdate = await Profile.findOneAndUpdate(
                     {user: req.params.user_id},
                     {$set: profileFields},
                     {new: true}
                 );
 
-                return res.json(profileUpdate)
+                return res.json(await Profile.findOne({user: req.params.user_id}).populate('user'))
             } else {
                 res.status(500).send('User is not valid');
             }
