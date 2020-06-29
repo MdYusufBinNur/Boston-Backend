@@ -168,7 +168,7 @@ router.post('/',
             if (due_date) orderFields.due_date = due_date;
             if (note) orderFields.note = note;
             if (order_status) orderFields.order_status = order_status;
-            orderFields.order_form = req.file.path;
+            if (req.file) orderFields.order_form = req.file.path;
             orderFields.client_order = clientOrderNo;
             orderFields.order_no = newOrderNo;
 
@@ -399,9 +399,6 @@ router.delete('/delete/:order_id', auth, async (req, res) => {
 //@access  Private
 router.delete('/:order_id', auth, async (req, res) => {
     try {
-        if (req.user.type !== 'Admin'){
-            return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
-        }
         if (await Order.findOneAndRemove({_id: req.params.order_id})){
             return  res.json({msg: "Order Deleted Successfully"});
         }

@@ -31,6 +31,7 @@ app.use('/api/order',require('./routes/api/order'));
 app.use('/api/client',require('./routes/api/client'));
 app.use('/api/message',require('./routes/api/message'));
 app.use('/api/invoice',require('./routes/api/invoice'));
+app.use('/api/billing',require('./routes/api/billing'));
 
 
 

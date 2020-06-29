@@ -154,7 +154,6 @@ const OrderSchema = new mongoose.Schema({
 
     order_form: {
         type: String,
-        required: true
     },
 
     note: {

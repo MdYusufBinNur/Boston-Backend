@@ -5,6 +5,7 @@ const {check, validationResult} = require('express-validator');
 const Order = require('../../models/Order');
 const Client = require('../../models/Client');
 const Invoice = require('../../models/Invoice');
+const AppraisalType = require('../../models/AppraisalType');
 const multer = require('multer');
 
 const storage = multer.diskStorage({
@@ -118,7 +119,10 @@ function generate_invoice() {
 //Access Private
 router.get('/', auth, async (req, res) => {
     try {
-        const invoices = await Invoice.find({isDeleted: false})
+        const invoices = await Invoice.find(
+            {
+                isDeleted: false
+            })
             .populate('client');
         return await res.json(invoices);
 

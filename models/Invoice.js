@@ -80,7 +80,14 @@ const InvoiceSchema = new mongoose.Schema({
     due_amount:{
         type: [String],
         default: 0
-    }
+    },
+    invoice_status:{
+        type: String
+    },
+    created_at: {
+        type: Date,
+        default: Date.now
+    },
 });
 
 module.exports = Invoice = mongoose.model('invoice', InvoiceSchema);
