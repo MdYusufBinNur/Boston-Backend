@@ -5,6 +5,8 @@ const {check, validationResult} = require('express-validator');
 const Order = require('../../models/Order');
 const Client = require('../../models/Client');
 const Invoice = require('../../models/Invoice');
+const HelperController = require('../../controller/helper');
+
 const multer = require('multer');
 
 const storage = multer.diskStorage({
@@ -316,7 +318,19 @@ router.put('/update/:order_id',
             if (order_status) orderFields.order_status = order_status;
             if (isDeleted) orderFields.isDeleted = isDeleted;
             if (order_form) orderFields.order_form = req.file.path;
-            if (await Order.findOneAndUpdate({_id : req.params.order_id},{$set: orderFields}, {new : true})){
+
+            //Update Order Filed
+            let order_update = await Order.findOneAndUpdate({_id : req.params.order_id},{$set: orderFields}, {new : true});
+            if (order_update){
+                if (order_status) {
+                    if (order_status === "delivered") {
+                        let invoice = await Invoice.findOne({order: req.params.order_id});
+
+                       // return res.send(HelperController.add_to_quick_book);
+
+                        return res.send(invoice);
+                    }
+                }
                 return res.status(200).json({ msg : 'Order Updated'});
             }
             return res.status(500).json({errors : { msg: 'Something went wrong !!!'}})

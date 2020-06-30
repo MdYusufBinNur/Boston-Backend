@@ -111,6 +111,9 @@ router.post('/filter', auth, upload.any(), async (req, res) => {
         console.error(e.message);
         return res.status(500).send("Server Error")
     }
+});
+
+router.post('/add_to_qb', [auth, upload.any()], (res, req) => {
 
 });
 
