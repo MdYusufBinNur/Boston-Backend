@@ -2,12 +2,8 @@ const express = require('express');
 const auth = require('../../middleware/auth');
 const router = express.Router();
 const {check, validationResult} = require('express-validator');
-const Order = require('../../models/Order');
-const Client = require('../../models/Client');
 const Invoice = require('../../models/Invoice');
-const AppraisalType = require('../../models/AppraisalType');
-const constant = require('../../helpers/constant');
-const helper = require('../../controller/helper');
+const Payment = require('../../models/Payment');
 const multer = require('multer');
 
 const storage = multer.diskStorage({
@@ -40,10 +36,9 @@ router.post('/',
             check('total_amount', 'Total Amount is required').not().isEmpty(),
             check('appraisal_fee', 'Appraisal Fee is required').not().isEmpty(), // Here Rate is declared as Appraisal Fee
         ],
-
         upload.any(),
     ],
-    async (req, res,) => {
+    async (req, res) => {
         const errors = validationResult(req.body);
         if (!errors.isEmpty()) {
             return res.status(401).json({errors: errors.array()});
@@ -138,7 +133,7 @@ router.get('/', auth, async (req, res) => {
 //Access Private
 router.get('/deleted', auth, async (req, res) => {
     try {
-        if (req.user.type !== 'Admin'){
+        if (req.user.type !== 'Admin') {
             return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
         }
         const invoices = await Invoice.find({isDeleted: true})
@@ -150,7 +145,6 @@ router.get('/deleted', auth, async (req, res) => {
         return res.status(500).send("Server Error")
     }
 });
-
 
 
 //Get All Deleted Invoice
@@ -171,84 +165,136 @@ router.get('/deleted_all', auth, async (req, res) => {
 //Access Private
 router.put('/update/:invoiceId', [auth, upload.any()],
     async (req, res) => {
-    const {
-        address_one,
-        address_two,
-        city,
-        state,
-        zip_code,
-        phone,
-        description,
-        price,
-        total_amount,
-        appraisal_fee,
+        const {
+            address_one,
+            address_two,
+            city,
+            state,
+            zip_code,
+            phone,
+            description,
+            price,
+            total_amount,
+            appraisal_fee,
 
-    } = req.body;
+        } = req.body;
+        try {
+            const invoiceFields = {};
+            if (city)
+                invoiceFields.city = city;
+            if (address_one)
+                invoiceFields.address_one = address_one;
+            if (address_two)
+                invoiceFields.address_two = address_two;
+            if (state)
+                invoiceFields.state = state;
+            if (zip_code)
+                invoiceFields.zip_code = zip_code;
+            if (phone)
+                invoiceFields.phone = phone;
+            if (description) {
+                invoiceFields.description = description.split(',').map(description => description.trim());
+            }
+            if (price) {
+                invoiceFields.price = price.split(',').map(price => price.trim());
+            }  //Appraisal Price
+
+            if (appraisal_fee) {
+                invoiceFields.appraisal_fee = appraisal_fee.split(',').map(appraisal_fee => appraisal_fee.trim());
+            }
+            if (total_amount)
+                invoiceFields.total_amount = total_amount;
+
+            //return res.send(invoiceFields)
+            await Invoice.findOneAndUpdate(
+                {_id: req.params.invoiceId},
+                {$set: invoiceFields},
+                {new: true}
+            );
+            return res.status(200).json({msg: "Invoice has been updated successfully"});
+
+        } catch (err) {
+            console.error(err.message);
+            return res.status(500).send(err.message);
+        }
+    });
+
+router.delete('/delete/:invoiceId', auth, async (req, res) => {
     try {
         const invoiceFields = {};
-        if (city)
-            invoiceFields.city = city;
-        if (address_one)
-            invoiceFields.address_one = address_one;
-        if (address_two)
-            invoiceFields.address_two = address_two;
-        if (state)
-            invoiceFields.state = state;
-        if (zip_code)
-            invoiceFields.zip_code = zip_code;
-        if (phone)
-            invoiceFields.phone = phone;
-        if (description) {
-            invoiceFields.description = description.split(',').map(description => description.trim());
-        }
-        if (price) {
-            invoiceFields.price = price.split(',').map(price => price.trim());
-        }  //Appraisal Price
-
-        if (appraisal_fee) {
-            invoiceFields.appraisal_fee = appraisal_fee.split(',').map(appraisal_fee => appraisal_fee.trim());
-        }
-        if (total_amount)
-            invoiceFields.total_amount = total_amount;
-
-        //return res.send(invoiceFields)
-        await Invoice.findOneAndUpdate(
-            {_id: req.params.invoiceId},
-            {$set: invoiceFields},
-            {new: true}
-        );
-        return res.status(200).json({msg: "Invoice has been updated successfully"});
-
-    } catch (err) {
-        console.error(err.message);
-        return res.status(500).send(err.message);
-    }
-});
-
-router.delete('/delete/:invoiceId', auth, async (req, res) =>{
-    try {
-        const invoiceFields ={};
         invoiceFields.isDeleted = true;
-        if (await Invoice.findOneAndUpdate({_id: req.params.invoiceId},{$set: invoiceFields})){
-            return  res.json({msg: "Order Deleted Successfully"});
+        if (await Invoice.findOneAndUpdate({_id: req.params.invoiceId}, {$set: invoiceFields})) {
+            return res.json({msg: "Order Deleted Successfully"});
         }
-        return res.status(500).json({ msg: "Something went wrong !!"})
+        return res.status(500).json({msg: "Something went wrong !!"})
     } catch (e) {
         console.error(e.message);
         res.status(500).send("Server Error")
     }
 });
 
-router.get('/:invoiceId', auth, async (req, res)=>{
-   try{
-       const invoice = await  Invoice.findOne({
-           _id: req.params.invoiceId
-       }).populate('client').populate('order');
-       return res.status(200).json(invoice);
-   } catch (e) {
-       console.error(e.message);
-       res.status(500).send("Server Error")
-   }
+router.get('/:invoiceId', auth, async (req, res) => {
+    try {
+        const invoice = await Invoice.findOne({
+            _id: req.params.invoiceId
+        }).populate('client').populate('order');
+        return res.status(200).json(invoice);
+    } catch (e) {
+        console.error(e.message);
+        res.status(500).send("Server Error")
+    }
+});
+
+router.post('/payment',
+    auth,
+    upload.any(),
+    [
+        check('invoice', 'Please Select A Invoice').not().isEmpty(),
+    ],
+    async (req, res) => {
+        const errors = validationResult(req.body);
+        if (!errors.isEmpty()) {
+            return res.status(401).json({errors: errors.array()});
+        }
+        //return res.send(req.body.client)
+        const {
+            invoice,
+            cheque_no,
+            memo,
+            amount,
+            date
+        } = req.body;
+        try {
+
+            let paymentsFields = {};
+            if (invoice) paymentsFields.invoice = invoice;
+            if (cheque_no) paymentsFields.cheque_no = cheque_no;
+            if (memo) paymentsFields.memo = memo;
+            if (amount) paymentsFields.memo = amount;
+            if (date) paymentsFields.memo = date;
+
+            let payment = new Payment(paymentsFields)
+            if (await payment.save()) {
+                return  res.json({ msg: "Naw Payment Saved"})
+            }
+            return res.status(500).json('Done');
+        } catch (err) {
+            //console.error(err.message);
+            return res.status(500).send(err.message);
+        }
+    }
+);
+
+router.get('/payment', auth, async (req, res) => {
+    try {
+
+        const invoices = await Payment.find({isDeleted: false});
+        return await res.json(invoices);
+
+    } catch (e) {
+        console.error(e.message);
+        return res.status(500).send("Server Error")
+    }
 });
 
 module.exports = router;

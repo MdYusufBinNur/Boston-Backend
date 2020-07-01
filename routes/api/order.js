@@ -322,15 +322,14 @@ router.put('/update/:order_id',
             //Update Order Filed
             let order_update = await Order.findOneAndUpdate({_id : req.params.order_id},{$set: orderFields}, {new : true});
             if (order_update){
-                if (order_status) {
-                    if (order_status === "delivered") {
-                        let invoice = await Invoice.findOne({order: req.params.order_id});
-
-                       // return res.send(HelperController.add_to_quick_book);
-
-                        return res.send(invoice);
-                    }
-                }
+                // if (order_status) {
+                //     if (order_status === "delivered") {
+                //         let invoice = await Invoice.findOne({order: req.params.order_id});
+                //         let quickBookFields = {};
+                //
+                //         return res.send(invoice);
+                //     }
+                // }
                 return res.status(200).json({ msg : 'Order Updated'});
             }
             return res.status(500).json({errors : { msg: 'Something went wrong !!!'}})
