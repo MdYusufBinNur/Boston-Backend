@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const QuickBookSchema = new mongoose.Schema({
     invoice_id: {
         type: mongoose.Schema.Types.ObjectID,
+        ref: 'invoice',
         required: true
     },
 

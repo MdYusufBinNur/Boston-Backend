@@ -266,6 +266,10 @@ router.post('/payment',
         } = req.body;
         try {
 
+            if (!invoice){
+                return res.status(401).json({errors: "Invoice is Required"});
+
+            }
             let paymentsFields = {};
             if (invoice) paymentsFields.invoice = invoice;
             if (cheque_no) paymentsFields.cheque_no = cheque_no;
@@ -273,11 +277,11 @@ router.post('/payment',
             if (amount) paymentsFields.memo = amount;
             if (date) paymentsFields.memo = date;
 
-            let payment = new Payment(paymentsFields)
+            let payment = new Payment(paymentsFields);
             if (await payment.save()) {
                 return  res.json({ msg: "Naw Payment Saved"})
             }
-            return res.status(500).json('Done');
+            return res.status(500).json('Something went wrong!! Try Again.');
         } catch (err) {
             //console.error(err.message);
             return res.status(500).send(err.message);
@@ -285,15 +289,14 @@ router.post('/payment',
     }
 );
 
-router.get('/payment', auth, async (req, res) => {
+router.get('/payment_all', auth, async (req, res) => {
     try {
-
-        const invoices = await Payment.find({isDeleted: false});
-        return await res.json(invoices);
+        const invoices = await Payment.find();
+        return  res.json(invoices);
 
     } catch (e) {
         console.error(e.message);
-        return res.status(500).send("Server Error")
+        return res.status(500).send(e.message)
     }
 });
 
