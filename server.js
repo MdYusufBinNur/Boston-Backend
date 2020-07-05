@@ -2,7 +2,6 @@ const express = require('express');
 const connectDB = require('./config/db');
 const app = express();
 
-
 //Connect Database
 connectDB();
 
@@ -34,6 +33,8 @@ app.use('/api/invoice',require('./routes/api/invoice'));
 app.use('/api/billing',require('./routes/api/billing'));
 app.use('/api/payment',require('./routes/api/payment'));
 app.use('/api/quick_book',require('./routes/api/quickbook'));
+app.use('/api/kb',require('./routes/api/knowledge_base'));
+app.use('/api/kb_category',require('./routes/api/kb_category'));
 
 
 
