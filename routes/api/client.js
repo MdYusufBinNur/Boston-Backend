@@ -37,7 +37,7 @@ const upload = multer({
 //@route POST api/client
 //@desc Create A New Client
 //@access Private
-var cors = require('cors');
+let cors = require('cors');
 router.use(cors());
 router.post(
     '/',

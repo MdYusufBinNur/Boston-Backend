@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const QuickBookSchema = new mongoose.Schema({
-    invoice_id: {
+    invoice: {
         type: mongoose.Schema.Types.ObjectID,
         ref: 'invoice',
         required: true
@@ -27,6 +27,10 @@ const QuickBookSchema = new mongoose.Schema({
 
     address: {
         type: String, //Here address is basically appraisal type
+    },
+    isDeleted: {
+        type: Boolean,
+        default : false
     }
 });
 module.exports = QuickBook = mongoose.model('quick_book', QuickBookSchema);

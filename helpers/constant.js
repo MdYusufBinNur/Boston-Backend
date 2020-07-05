@@ -1,3 +1,4 @@
+const QB = require('../models/QuickBook');
 module.exports = Object.freeze({
     STATUS_TO_BE_SCHEDULED: 'to_be_scheduled',
     STATUS_IN_SCHEDULE: 'in_schedule',
@@ -11,3 +12,6 @@ module.exports = Object.freeze({
     STATUS_PCR_COMPLETED: 'pcr_completed',
     STATUS_ON_HOLD: 'on_hold',
 });
+
+
+

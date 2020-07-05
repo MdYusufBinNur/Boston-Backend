@@ -5,7 +5,7 @@ const {check, validationResult} = require('express-validator');
 const Order = require('../../models/Order');
 const Client = require('../../models/Client');
 const Invoice = require('../../models/Invoice');
-const HelperController = require('../../controller/helper');
+const helper = require('../../controller/helper');
 
 const multer = require('multer');
 
@@ -272,9 +272,7 @@ router.put('/update/:order_id',
         } = req.body;
 
         try {
-
             const orderFields = {};
-
             if (client) orderFields.client = client;
             if (lender_or_bank_name) orderFields.lender_or_bank_name = lender_or_bank_name;
             if (lender_street) orderFields.lender_street = lender_street;
@@ -295,16 +293,13 @@ router.put('/update/:order_id',
             }
             if (borrower_email) orderFields.borrower_email = borrower_email;
             if (contact_person_name) orderFields.contact_person_name = contact_person_name;
-
             if (contact_person_phone){
                 orderFields.contact_person_phone = contact_person_phone.split(',').map(contact_person_phone => contact_person_phone.trim());
             }
             if (contact_person_email) orderFields.contact_person_email = contact_person_email;
-
             if (appraisal_types) {
                 orderFields.appraisal_types = appraisal_types.split(',').map(appraisal_types => appraisal_types.trim());
             }
-
             if (loan) orderFields.loan = loan;
             if (client_order) orderFields.client_order = client_order;
             if (loan_type) orderFields.loan_type = loan_type;
@@ -322,14 +317,24 @@ router.put('/update/:order_id',
             //Update Order Filed
             let order_update = await Order.findOneAndUpdate({_id : req.params.order_id},{$set: orderFields}, {new : true});
             if (order_update){
-                // if (order_status) {
-                //     if (order_status === "delivered") {
-                //         let invoice = await Invoice.findOne({order: req.params.order_id});
-                //         let quickBookFields = {};
-                //
-                //         return res.send(invoice);
-                //     }
-                // }
+                if (order_status) {
+                    if (order_status === "delivered") {
+                        let invoices = await Invoice.findOne({order: req.params.order_id});
+                        //let quickBookFields = {};
+
+                        if (invoices){
+                            let QbData = {};
+                            QbData.invoice = invoices.id;
+                            QbData.order_no = invoices.order_no;
+                            QbData.client_order = invoices.client_order;
+                            QbData.date = invoices.created_at;
+                            QbData.address = invoices.address_one + ',' + invoices.state + ',' + ',' +invoices.zip_code + ',' + invoices.city;
+                            let QB = helper.sync_to_qb(QbData);
+                            return res.status(200).json({msg: "Order Updated and " + QB});
+                        }
+                        return res.status(200).json({msg: "Order Updated"});
+                    }
+                }
                 return res.status(200).json({ msg : 'Order Updated'});
             }
             return res.status(500).json({errors : { msg: 'Something went wrong !!!'}})
@@ -421,10 +426,8 @@ router.delete('/:order_id', auth, async (req, res) => {
         res.status(500).send("Server Error")
     }
 });
-
 // @route POST api/order/filter
 // Access Private
-
 router.post('/filter',auth,upload.any(), async (req, res) => {
     //return res.send(req.body.order_no);
     let order_no = req.body.order_no;

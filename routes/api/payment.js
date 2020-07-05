@@ -4,8 +4,9 @@ const router = express.Router();
 const {check, validationResult} = require('express-validator');
 const Invoice = require('../../models/Invoice');
 const Payment = require('../../models/Payment');
+const Qb = require('../../models/QuickBook');
+const helper = require('../../controller/helper');
 const multer = require('multer');
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads/');
@@ -14,12 +15,9 @@ const storage = multer.diskStorage({
         cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
     }
 });
-
 const upload = multer({
     storage: storage,
 });
-
-
 router.post(
     '/',
     [
@@ -28,7 +26,6 @@ router.post(
         [
             check('invoice', 'Please Select A Invoice').not().isEmpty(),
         ],
-
     ],
     async (req, res) => {
         const errors = validationResult(req);
@@ -51,18 +48,35 @@ router.post(
             if (memo) paymentsFields.memo = memo;
             if (amount) paymentsFields.memo = amount;
             if (date) paymentsFields.memo = date;
-
             let payment = new Payment(paymentsFields);
             if (await payment.save()) {
+
+                let invoices  = await Invoice.findOne({_id: invoice});
+
+                let qq =  await Qb.findOne({order_no : invoices.order_no});
+
+                if (!qq)
+                {
+                    let QbData = {};
+                    QbData.invoice = invoice;
+                    QbData.order_no = invoices.order_no;
+                    QbData.client_order = invoices.client_order;
+                    QbData.date = invoices.created_at;
+                    QbData.address = invoices.address_one + ',' + invoices.state + ',' + ',' +invoices.zip_code + ',' + invoices.city;
+                    let QB = helper.sync_to_qb(QbData);
+                    return res.json({msg: "Naw Payment Saved, " + QB})
+                }
                 return res.json({msg: "Naw Payment Saved"})
+
+
             }
             return res.status(500).json('Something went wrong!! Try Again.');
+        }
 
-        } catch (err) {
+        catch (err) {
             console.error(err.message);
             res.status(500).send('Server Error');
         }
-
     });
 
 router.get(
@@ -83,7 +97,6 @@ router.put(
     auth,
     upload.any(),
     async (req, res) => {
-
         const {
             invoice,
             cheque_no,
@@ -101,12 +114,10 @@ router.put(
             if (amount) paymentsFields.memo = amount;
             if (date) paymentsFields.memo = date;
             if (isDeleted) paymentsFields.isDeleted = isDeleted;
-
             if (await Payment.findOneAndUpdate({_id: req.params.payment_id}, {$set: paymentsFields},{ new: true})) {
                 return res.json({msg:"Payment Updated"})
             }
             return res.status(500).json('Something went wrong!! Try Again.');
-
         } catch (err) {
             console.error(err.message);
             res.status(500).send('Server Error');
@@ -154,4 +165,23 @@ router.post(
             res.status(500).send('Server Error');
         }
     });
+
+router.delete('/delete/:payment_id', auth, async (req, res)=> {
+    try{
+        if (req.user.type !== 'Admin'){
+            return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
+        }
+        let paymentFields = {};
+        paymentFields.isDeleted = true;
+        if (await Payment.findOneAndUpdate({_id: req.params.payment_id},{$set: paymentFields})) {
+            return await res.json({msg: "Payment Deleted Successfully"});
+        }
+        return res.status(500).json({ msg: "Something went wrong !!"})
+    }
+    catch (e) {
+        console.log(e.message);
+        return res.status(500).send('Sever Error');
+    }
+});
+
 module.exports = router;

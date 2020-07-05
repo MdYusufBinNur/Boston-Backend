@@ -33,6 +33,7 @@ app.use('/api/message',require('./routes/api/message'));
 app.use('/api/invoice',require('./routes/api/invoice'));
 app.use('/api/billing',require('./routes/api/billing'));
 app.use('/api/payment',require('./routes/api/payment'));
+app.use('/api/quick_book',require('./routes/api/quickbook'));
 
 
 

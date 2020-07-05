@@ -5,7 +5,6 @@ const {check, validationResult} = require('express-validator');
 const Invoice = require('../../models/Invoice');
 const Payment = require('../../models/Payment');
 const multer = require('multer');
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads/');
@@ -14,7 +13,6 @@ const storage = multer.diskStorage({
         cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
     }
 });
-
 const upload = multer({
     storage: storage,
 });
@@ -176,6 +174,7 @@ router.put('/update/:invoiceId', [auth, upload.any()],
             price,
             total_amount,
             appraisal_fee,
+            isDeleted
 
         } = req.body;
         try {
@@ -188,6 +187,8 @@ router.put('/update/:invoiceId', [auth, upload.any()],
                 invoiceFields.address_two = address_two;
             if (state)
                 invoiceFields.state = state;
+            if (isDeleted)
+                invoiceFields.isDeleted = isDeleted;
             if (zip_code)
                 invoiceFields.zip_code = zip_code;
             if (phone)
@@ -198,7 +199,6 @@ router.put('/update/:invoiceId', [auth, upload.any()],
             if (price) {
                 invoiceFields.price = price.split(',').map(price => price.trim());
             }  //Appraisal Price
-
             if (appraisal_fee) {
                 invoiceFields.appraisal_fee = appraisal_fee.split(',').map(appraisal_fee => appraisal_fee.trim());
             }
@@ -242,61 +242,6 @@ router.get('/:invoiceId', auth, async (req, res) => {
     } catch (e) {
         console.error(e.message);
         res.status(500).send("Server Error")
-    }
-});
-
-router.post('/payment',
-    auth,
-    upload.any(),
-    [
-        check('invoice', 'Please Select A Invoice').not().isEmpty(),
-    ],
-    async (req, res) => {
-        const errors = validationResult(req.body);
-        if (!errors.isEmpty()) {
-            return res.status(401).json({errors: errors.array()});
-        }
-        //return res.send(req.body.client)
-        const {
-            invoice,
-            cheque_no,
-            memo,
-            amount,
-            date
-        } = req.body;
-        try {
-
-            if (!invoice){
-                return res.status(401).json({errors: "Invoice is Required"});
-
-            }
-            let paymentsFields = {};
-            if (invoice) paymentsFields.invoice = invoice;
-            if (cheque_no) paymentsFields.cheque_no = cheque_no;
-            if (memo) paymentsFields.memo = memo;
-            if (amount) paymentsFields.memo = amount;
-            if (date) paymentsFields.memo = date;
-
-            let payment = new Payment(paymentsFields);
-            if (await payment.save()) {
-                return  res.json({ msg: "Naw Payment Saved"})
-            }
-            return res.status(500).json('Something went wrong!! Try Again.');
-        } catch (err) {
-            //console.error(err.message);
-            return res.status(500).send(err.message);
-        }
-    }
-);
-
-router.get('/payment_all', auth, async (req, res) => {
-    try {
-        const invoices = await Payment.find();
-        return  res.json(invoices);
-
-    } catch (e) {
-        console.error(e.message);
-        return res.status(500).send(e.message)
     }
 });
 
