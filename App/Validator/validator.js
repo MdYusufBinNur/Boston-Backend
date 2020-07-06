@@ -4,7 +4,11 @@ exports.createPayment =
         check('payment').isEmpty()
     ];
 
-exports.checkKB =
+/**
+ * Here KB means Knowledge Base :v
+ * @type ValidityState
+ */
+exports.check_kb =
     [
         check('title', 'Title Is Required').not().isEmpty(),
     ];

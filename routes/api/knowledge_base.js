@@ -3,14 +3,35 @@ const auth = require('../../middleware/auth');
 const router = express.Router();
 const validator = require('../../App/Validator/validator');
 const KBController = require('../../App/Http/Controllers/KnowledgeBaseController');
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, './uploads/kb/');
+    },
+    filename: function(req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString()+ file.originalname);
+    }
+});
 
+const fileFilter = (req, file, cb) => {
+    cb(null, true);
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+});
 /**
  * @access private
  * @description Create New
  * @route api/kb
  * @method POST
  */
-router.post('/', auth, validator.checkKB, KBController.create);
+router.post('/', auth, upload.single('file'), validator.check_kb, KBController.create);
 
 /**
  * @access private
@@ -18,7 +39,7 @@ router.post('/', auth, validator.checkKB, KBController.create);
  * @route api/kb/update/:item_id
  * @method PUT
  */
-router.put('/update/:item_id', auth, KBController.update);
+router.put('/update/:kb_id', auth, upload.single('file'), KBController.update);
 
 /**
  * @access private
@@ -36,7 +57,7 @@ router.get('/',auth, KBController.get);
  * @method DELETE
  *
  */
-router.delete('/:item_id', auth, KBController.delete);
+router.delete('/:kb_id', auth, KBController.delete);
 
 
 module.exports = router;
