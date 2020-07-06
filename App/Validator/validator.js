@@ -17,3 +17,8 @@ exports.check_kb_category =
     [
         check('name', 'Category Name Is Required').not().isEmpty(),
     ];
+
+exports.check_client_note =
+    [
+        check('client','Please select a client').not().isEmpty()
+    ]

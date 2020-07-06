@@ -11,7 +11,6 @@ const InvoiceSchema = new mongoose.Schema({
         ref: 'order',
         required: true
     },
-
     isDeleted: {
         type: Boolean,
         default: false
@@ -21,12 +20,10 @@ const InvoiceSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-
     order_no: {
         type: String,
         required: true
     },
-
     client_order:{
         type: String,
         required: true,
@@ -58,25 +55,21 @@ const InvoiceSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     },
-
     description:{
         type: [String]
     },
-
     appraisal_fee: {
-        type: [String],
+        type: [Number],
         required: true
     },
-
     price: {
-        type: [String],
+        type: [Number],
         required: true
     },
     total_amount: {
-        type: String,
+        type: Number,
         required: true
     },
-
     due_amount:{
         type: [String],
         default: 0

@@ -43,7 +43,8 @@ module.exports = {
         const {
             category,
             title,
-            description
+            description,
+            isDeleted
         } = req.body;
 
         try{
@@ -52,6 +53,7 @@ module.exports = {
             if (category) KB_Fields.category = category;
             if (title) KB_Fields.title = title;
             if (description) KB_Fields.description = description;
+            if (isDeleted) KB_Fields.isDeleted = isDeleted;
             if (req.file) KB_Fields.file = req.file.path;
 
             if (await KB.findOneAndUpdate(
