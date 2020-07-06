@@ -69,6 +69,9 @@ const ClientSchema = new mongoose.Schema({
     isDeleted: {
         type: Boolean,
         default: false
+    },
+    type: {
+        type: String
     }
 
 });

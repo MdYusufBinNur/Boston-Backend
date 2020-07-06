@@ -1,6 +1,7 @@
 const {validationResult} = require('express-validator');
 const ClientNote = require('../../Models/NoteForClient');
 const Invoice = require('../../../models/Invoice');
+const Client = require('../../../models/Client');
 
 module.exports = {
     create: async function(req, res){
@@ -130,6 +131,44 @@ module.exports = {
 
            let sum = client_list.map(o => parseInt(o.total_amount)).reduce((a, c) => { return a + c });
            return res.status(200).json(hash);
+        }catch (e) {
+            console.log(e.message);
+
+            return res.status(500).json({msg: "Server Error"})
+        }
+    },
+    client: async function(req, res) {
+        const {
+            type
+        } = req.body;
+
+        try {
+            const clientFields = {};
+            if (type) clientFields.type = type;
+            let client = await Client.findOneAndUpdate(
+                {_id: req.params.client_id},
+                {$set: clientFields});
+            if (client)
+            {
+                return res.status(200).json({msg: "Client Type Changed"});
+            }
+            return res.status(500).json({msg: "Server Error"})
+
+        }catch (e) {
+            console.log(e.message);
+
+            return res.status(500).json({msg: "Server Error"})
+        }
+    },
+
+    potential_client: async function(req, res){
+        try {
+            const clientFields = {};
+            clientFields.type = 'potential';
+            let client = await Client.find({type: "potential"});
+            if (client) {
+                return res.status(200).json(client);
+            }
         }catch (e) {
             console.log(e.message);
 
