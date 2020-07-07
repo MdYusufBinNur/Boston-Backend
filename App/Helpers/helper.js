@@ -1,4 +1,4 @@
-const QB = require('../App/Models/QuickBook');
+const QB = require('../Models/QuickBook');
 
 module.exports = {
     sync_to_qb :  function (data) {

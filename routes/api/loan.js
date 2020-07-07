@@ -1,10 +1,70 @@
 const express = require('express');
-
 const auth = require('../../middleware/auth');
 const router = express.Router();
-const config = require('config');
+const Controller = require('../../App/Http/Controllers/LoanController');
+const validator = require('../../App/Validator/validator');
+
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
+    }
+});
+const upload = multer({
+    storage: storage,
+});
+
+/**
+ * @access private
+ * @description Create New
+ * @route api/loan_type
+ * @method POST
+ */
+router.post('/', auth, upload.any(), validator.check_loan, Controller.create);
+
+/**
+ * @access private
+ * @description Update Info
+ * @route api/loan_type/update/:item_id
+ * @method PUT
+ */
+router.put('/update/:loan_type_id', auth, upload.any(), Controller.update);
+
+/**
+ * @access private
+ * @description Get All Info
+ * @route api/loan_type/
+ * @method GET
+ */
+router.get('/',auth, Controller.get);
+
+/**
+ * @type {Router}
+ * @access private
+ * @description Delete an Item
+ * @route api/loan_type/:item_id
+ * @method DELETE
+ *
+ */
+router.delete('/:loan_type_id', auth,Controller.delete);
+
+
+module.exports = router;
+
+
+/*
+const express = require('express');
+const auth = require('../../middleware/auth');
+const router = express.Router();
 const {check, validationResult} = require('express-validator');
-const LoanType = require('../../models/LoanType');
+const LoanType = require('../../App/Models/LoanType');
 
 
 //@route POST api/loan
@@ -131,3 +191,4 @@ router.delete('/:loan_type_id', auth, async (req, res) => {
     }
 });
 module.exports = router;
+*/

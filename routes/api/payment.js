@@ -1,10 +1,81 @@
 const express = require('express');
 const auth = require('../../middleware/auth');
 const router = express.Router();
+const validator = require('../../App/Validator/validator');
+const Controller = require('../../App/Http/Controllers/PaymentController');
+
+let cors = require('cors');
+router.use(cors());
+
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
+    }
+});
+const upload = multer({
+    storage: storage,
+});
+
+/**
+ * @access private
+ * @description Create New
+ * @route api/payment
+ * @method POST
+ */
+router.post('/', auth, upload.any(), validator.check_invoice, Controller.create);
+
+/**
+ * @access private
+ * @description Get All Info
+ * @route api/payment/
+ * @method GET
+ */
+router.get('/', auth, Controller.get);
+
+/**
+ * @access private
+ * @description Update Info
+ * @route api/payment/update/:item_id
+ * @method PUT
+ */
+router.put('/update/:payment_id', auth, upload.any(), Controller.update);
+
+/**
+ * @access private
+ * @description Get All Deleted Client Info
+ * @route api/payment/payments_under_specific_cheque
+ * @method POST
+ */
+router.post('/payments_under_specific_cheque', auth, validator.check_cheque_no, Controller.payments_under_specific_cheque);
+
+/**
+ * @type {Router}
+ * @access private
+ * @description Delete an Item
+ * @route api/client/delete/:item_id
+ * @method DELETE
+ *
+ */
+router.delete('/:payment_id', auth, Controller.delete);
+
+module.exports = router;
+
+/*
+const express = require('express');
+const auth = require('../../middleware/auth');
+const router = express.Router();
 const {check, validationResult} = require('express-validator');
-const Invoice = require('../../models/Invoice');
-const Payment = require('../../models/Payment');
-const Qb = require('../../models/QuickBook');
+const Invoice = require('../../App/Models/Invoice');
+const Payment = require('../../App/Models/Payment');
+const Qb = require('../../App/Models/QuickBook');
 const helper = require('../../controller/helper');
 const multer = require('multer');
 const storage = multer.diskStorage({
@@ -166,7 +237,7 @@ router.post(
         }
     });
 
-router.delete('/delete/:payment_id', auth, async (req, res)=> {
+router.delete('/:payment_id', auth, async (req, res)=> {
     try{
         if (req.user.type !== 'Admin'){
             return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
@@ -184,4 +255,4 @@ router.delete('/delete/:payment_id', auth, async (req, res)=> {
     }
 });
 
-module.exports = router;
+module.exports = router;*/

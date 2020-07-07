@@ -1,44 +1,78 @@
 const express = require('express');
-
 const auth = require('../../middleware/auth');
 const router = express.Router();
-const gravatar = require('gravatar');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const config = require('config')
-const {check, validationResult} = require('express-validator');
-const multer = require('multer');
-const Client = require('../../models/Client');
+const validator = require('../../App/Validator/validator');
+const Controller = require('../../App/Http/Controllers/ClientController');
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './uploads/client/');
-    },
-    filename: function(req, file, cb) {
-        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString()+ file.originalname);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    // reject a file
-
-    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-        cb(null, true);
-    } else {
-        cb(null, false);
-    }
-};
-
-const upload = multer({
-    storage: storage
-
-});
-
-//@route POST api/client
-//@desc Create A New Client
-//@access Private
 let cors = require('cors');
 router.use(cors());
+
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
+    }
+});
+const upload = multer({
+    storage: storage,
+});
+
+/**
+ * @access private
+ * @description Create New
+ * @route api/client
+ * @method POST
+ */
+router.post('/', auth, upload.any(), validator.check_client, Controller.create);
+
+/**
+ * @access private
+ * @description Update Info
+ * @route api/client/update/:item_id
+ * @method PUT
+ */
+router.put('/update/:client_id', auth, upload.any(), Controller.update);
+
+/**
+ * @access private
+ * @description Get All Info
+ * @route api/client/
+ * @method GET
+ */
+router.get('/', auth, Controller.get);
+
+/**
+ * @access private
+ * @description Get All Deleted Client Info
+ * @route api/client/deleted_all
+ * @method GET
+ */
+router.get('/deleted_all', auth, Controller.deleted_client);
+
+/**
+ * @type {Router}
+ * @access private
+ * @description Delete an Item
+ * @route api/client/delete/:item_id
+ * @method DELETE
+ *
+ */
+router.delete('/:client_id', auth, Controller.delete);
+
+module.exports = router;
+
+
+/*//@route POST api/client
+//@desc Create A New Client
+//@access Private
+
 router.post(
     '/',
     [
@@ -117,9 +151,9 @@ router.post(
             if (client_web_url) ClientFields.client_web_url = client_web_url;
 
             let new_client = new Client(ClientFields);
-           if (await new_client.save()){
-               return  res.json({msg: "New Client Added Successfully"});
-           }
+            if (await new_client.save()){
+                return  res.json({msg: "New Client Added Successfully"});
+            }
             return  res.status(500).send('Server Error');
 
         } catch (err) {
@@ -256,6 +290,7 @@ router.delete('/delete/:client_id', auth, upload.any(), async (req, res) => {
         res.status(500).send("Server Error")
     }
 });
+
 //@route DELETE api/client
 //@desc  Delete Client
 //@access  Private
@@ -273,4 +308,5 @@ router.delete('/:client_id', auth, upload.any(), async (req, res) => {
         res.status(500).send("Server Error")
     }
 });
-module.exports = router;
+
+module.exports = router;*/

@@ -1,9 +1,71 @@
 const express = require('express');
 const auth = require('../../middleware/auth');
 const router = express.Router();
+const Controller = require('../../App/Http/Controllers/MessageController');
+const validator = require('../../App/Validator/validator');
+
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, './uploads/message_files/');
+    },
+    filename: function(req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString()+ file.originalname);
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    cb(null, true);
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+});
+
+/**
+ * @access private
+ * @description Create New
+ * @route api/message
+ * @method POST
+ */
+router.post('/', auth, upload.single('message_file'), validator.check_loan, Controller.create);
+
+/**
+ * @access private
+ * @description Get All Info
+ * @route api/message/
+ * @method GET
+ */
+router.get('/',auth, Controller.get);
+
+/**
+ * @type {Router}
+ * @access private
+ * @description Get Item By User ID
+ * @route api/message/:item_id
+ * @method GET
+ *
+ */
+router.get('/:receiver_id', auth, Controller.message_by_user_id);
+
+
+module.exports = router;
+
+/*
+
+
+const express = require('express');
+const auth = require('../../middleware/auth');
+const router = express.Router();
 const {check, validationResult} = require('express-validator');
-const Message = require('../../models/Message');
-const Profile = require('../../models/Profile');
+const Message = require('../../App/Models/Message');
+const Profile = require('../../App/Models/Profile');
 const multer = require('multer');
 
 const storage = multer.diskStorage({
@@ -30,11 +92,11 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-/*
+/!*
     @Route api/message [POST METHOD]
     @Desc Save a message
     @Access Private
-*/
+*!/
 
 
 router.post('/',
@@ -65,7 +127,7 @@ router.post('/',
         if (req.user.profileId){
             messageFields.sender_profile = req.user.profileId;
         }
-        /* Have to save profile ID in receiver and sender so that we can get user info easily*/
+        /!* Have to save profile ID in receiver and sender so that we can get user info easily*!/
         if (receiver) messageFields.receiver = receiver;
         if (receiver)
         {
@@ -89,6 +151,7 @@ router.post('/',
     }
 
 });
+
 router.get('/',auth, async (req, res) => {
     try{
         if (req.user.id){
@@ -129,3 +192,4 @@ router.get('/:receiver_id',auth, async (req, res) => {
     }
 });
 module.exports = router;
+*/

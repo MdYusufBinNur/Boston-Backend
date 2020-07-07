@@ -1,15 +1,103 @@
 const express = require('express');
+const auth = require('../../middleware/auth');
+const router = express.Router();
+const validator = require('../../App/Validator/validator');
+const Controller = require('../../App/Http/Controllers/UserController');
 
+let cors = require('cors');
+router.use(cors());
+
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
+    }
+});
+const upload = multer({
+    storage: storage,
+});
+
+/**
+ * @access private
+ * @description Create New
+ * @route api/user
+ * @method POST
+ */
+router.post('/', auth, upload.any(), validator.check_user, Controller.create);
+
+/**
+ * @access private
+ * @description Get All Info
+ * @route api/user/
+ * @method GET
+ */
+router.get('/', auth, Controller.get);
+
+/**
+ * @access private
+ * @description Get All Info
+ * @route api/user/myProfile
+ * @method GET
+ */
+router.get('/myProfile', auth, Controller.my_profile);
+
+/**
+ * @access private
+ * @description Get All Deleted User Info
+ * @route api/user/deleted_all
+ * @method GET
+ */
+router.get('/deleted_all', auth, Controller.deleted_user);
+
+/**
+ * @access private
+ * @description Get Specific User Info
+ * @route api/user/:user_id
+ * @method GET
+ */
+router.get('/:user_id', auth, Controller.user_by_id);
+
+/**
+ * @access private
+ * @description Update Info
+ * @route api/client/update/:item_id
+ * @method PUT
+ */
+router.put('/update/:user_id', auth, upload.any(), Controller.update);
+
+
+/**
+ * @type {Router}
+ * @access private
+ * @description Delete an Item
+ * @route api/user/:item_id
+ * @method DELETE
+ *
+ */
+router.delete('/:user_id', auth, Controller.delete);
+
+module.exports = router;
+
+/*
+
+const express = require('express');
 const auth = require('../../middleware/auth');
 const router = express.Router();
 const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const config = require('config')
+const config = require('config');
 const {check, validationResult} = require('express-validator');
 //Import models
-const User = require('../../models/User');
-const Profile = require('../../models/Profile');
+const User = require('../../App/Models/User');
+const Profile = require('../../App/Models/Profile');
 //@route Post api/user
 //@desc  Register a user route
 //@access  Public
@@ -95,7 +183,7 @@ router.post(
             let profile = new Profile(profileFields);
             await profile.save();
 
-     /*       const payload = {
+     /!*       const payload = {
                 user: {
                     id: user.id,
                 }
@@ -106,7 +194,7 @@ router.post(
                 (err, token) => {
                     if (err) throw err;
                     res.json({token})
-                });*/
+                });*!/
 
             return res.status(200).json({msg: "New User Saved Successfully"})
             //Return jsonwebtoken
@@ -305,3 +393,4 @@ router.delete('/:user_id', auth, async (req, res) => {
 
 
 module.exports = router;
+*/

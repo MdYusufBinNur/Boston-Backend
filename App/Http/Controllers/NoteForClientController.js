@@ -1,7 +1,7 @@
 const {validationResult} = require('express-validator');
 const ClientNote = require('../../Models/NoteForClient');
-const Invoice = require('../../../models/Invoice');
-const Client = require('../../../models/Client');
+const Invoice = require('../../Models/Invoice');
+const Client = require('../../Models/Client');
 
 module.exports = {
     create: async function(req, res){

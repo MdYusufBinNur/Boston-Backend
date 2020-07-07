@@ -1,15 +1,86 @@
 const express = require('express');
-
 const auth = require('../../middleware/auth');
 const router = express.Router();
-const gravatar = require('gravatar');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const config = require('config')
+const Controller = require('../../App/Http/Controllers/QuickBookController');
+const validator = require('../../App/Validator/validator');
+
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
+    }
+});
+const upload = multer({
+    storage: storage,
+});
+
+
+/**
+ * @access private
+ * @description Create New
+ * @route api/qb
+ * @method POST
+ */
+router.post('/', auth, upload.any(), validator.check_qb, Controller.create);
+
+/**
+ * @access private
+ * @description Get Active Records
+ * @route api/qb
+ * @method GET
+ */
+router.get('/', auth,  Controller.get);
+
+
+/**
+ * @access private
+ * @description Get Inactive Records
+ * @route api/qb/deleted_qb
+ * @method GET
+ */
+router.get('/deleted_qb', auth, Controller.deleted_qb);
+
+/**
+ * @access private
+ * @description Get Records By ID
+ * @route api/qb/:qb_no
+ * @method GET
+ */
+router.get('/:qb_id', auth, Controller.quick_book_by_id);
+
+/**
+ * @access private
+ * @description Delete Records
+ * @route api/qb/:qb_no
+ * @method DELETE
+ */
+router.delete('/:qb_id', auth, Controller.delete);
+
+/**
+ * @access private
+ * @description Soft Delete Records
+ * @route api/qb/:qb_no
+ * @method DELETE
+ */
+router.delete('/delete/:qb_id', auth, Controller.make_soft_delete);
+
+module.exports = router;
+/*
+
+
+const express = require('express');
+const auth = require('../../middleware/auth');
+const router = express.Router();
 const {check, validationResult} = require('express-validator');
 const multer = require('multer');
-const QuickBook = require('../../models/QuickBook');
-const HelperController = require('../../controller/helper');
+const QuickBook = require('../../App/Models/QuickBook');
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, './uploads/');
@@ -161,3 +232,4 @@ router.delete('/:qb_id', auth, upload.any(), async (req, res) => {
     }
 });
 module.exports = router;
+*/

@@ -11,11 +11,11 @@ const OrderSchema = new mongoose.Schema({
         type: String,
         default: "on_hold"
     },
+
     client: {
         type: mongoose.Schema.Types.ObjectID,
         ref: 'client'
     },
-
 
     lender_or_bank_name: {
         type: String,
@@ -109,7 +109,7 @@ const OrderSchema = new mongoose.Schema({
     },
 
     price: {
-        type: String,
+        type: Number,
         required: true
     },
 
@@ -130,7 +130,7 @@ const OrderSchema = new mongoose.Schema({
     },
 
     appraisal_fee: {
-        type: String
+        type: Number
     },
 
     appraisar_name: {
@@ -141,12 +141,15 @@ const OrderSchema = new mongoose.Schema({
     due_date: {
         type: Date,
     },
+
     inspection_date: {
         type: Date,
     },
+
     last_call_date: {
         type: Date,
     },
+
     created_at: {
         type: Date,
         default: Date.now
@@ -159,10 +162,12 @@ const OrderSchema = new mongoose.Schema({
     note: {
         type: String
     },
+
     order_generated_by:{
         type: mongoose.Schema.Types.ObjectID,
         ref: 'user'
     },
+
     isDeleted: {
         type: Boolean,
         default: false

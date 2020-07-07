@@ -1,9 +1,88 @@
 const express = require('express');
 const auth = require('../../middleware/auth');
 const router = express.Router();
+const Controller = require('../../App/Http/Controllers/InvoiceController');
+const validator = require('../../App/Validator/validator');
+
+/**
+ *@description here multer is using for files
+ * @type {multer}
+ */
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString() + file.originalname);
+    }
+});
+const upload = multer({
+    storage: storage,
+});
+
+
+/**
+ * @access private
+ * @description Create New
+ * @route api/invoice
+ * @method POST
+ */
+router.post('/', auth, upload.any(), validator.check_invoice, Controller.create);
+
+/**
+ * @access private
+ * @description Get All Info
+ * @route api/invoice/
+ * @method GET
+ */
+router.get('/',auth, Controller.get);
+
+/**
+ * @access private
+ * @description Get All Deleted Info
+ * @route api/invoice/deleted_invoices
+ * @method GET
+ */
+router.get('/deleted_invoices',auth, Controller.deleted_invoice);
+
+/**
+ * @access private
+ * @description Get Item By Id
+ * @route api/invoice/deleted_invoices
+ * @method GET
+ */
+router.get('/:invoice_id',auth, Controller.invoice_by_id);
+
+/**
+ * @type {Router}
+ * @access private
+ * @description Update an Item
+ * @route api/invoice/update/:item_id
+ * @method PUT
+ *
+ */
+router.put('/update/:invoice_id', auth, upload.any(), Controller.update);
+
+/**
+ * @type {Router}
+ * @access private
+ * @description Delete an Item
+ * @route api/invoice/delete/:item_id
+ * @method PUT
+ *
+ */
+router.delete('/:invoice_id', auth, Controller.delete);
+
+module.exports = router;
+
+/*
+
+const express = require('express');
+const auth = require('../../middleware/auth');
+const router = express.Router();
 const {check, validationResult} = require('express-validator');
-const Invoice = require('../../models/Invoice');
-const Payment = require('../../models/Payment');
+const Invoice = require('../../App/Models/Invoice');
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -18,10 +97,7 @@ const upload = multer({
 });
 //Save an Invoice
 //Access Private
-router.post('/',
-    [
-        auth,
-        [
+router.post('/', [auth, [
             check('client', 'Please Select A Client').not().isEmpty(),
             check('order', 'Please Select An Order').not().isEmpty(),
             check('address_one', 'Address is required').not().isEmpty(),
@@ -33,10 +109,7 @@ router.post('/',
             check('price', 'Price is required').not().isEmpty(), // Here Amount is declared as Price
             check('total_amount', 'Total Amount is required').not().isEmpty(),
             check('appraisal_fee', 'Appraisal Fee is required').not().isEmpty(), // Here Rate is declared as Appraisal Fee
-        ],
-        upload.any(),
-    ],
-    async (req, res) => {
+        ], upload.any(),], async (req, res) => {
         const errors = validationResult(req.body);
         if (!errors.isEmpty()) {
             return res.status(401).json({errors: errors.array()});
@@ -101,14 +174,12 @@ router.post('/',
             console.error(err.message);
             return res.status(500).send(err.message);
         }
-    }
-);
+    });
 
 function generate_invoice() {
     return "INV" + Math.floor(1000 + Math.random() * 9000) + new Date().getFullYear().toString()
         + new Date().getMilliseconds().toString();
 }
-
 
 //Get All Invoice
 //Access Private
@@ -246,3 +317,4 @@ router.get('/:invoiceId', auth, async (req, res) => {
 });
 
 module.exports = router;
+*/

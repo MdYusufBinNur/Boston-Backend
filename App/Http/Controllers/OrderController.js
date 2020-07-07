@@ -1,176 +1,11 @@
-const express = require('express');
-const auth = require('../../middleware/auth');
-const router = express.Router();
-const validator = require('../../App/Validator/validator');
-const Controller = require('../../App/Http/Controllers/OrderController');
+const {validationResult} = require('express-validator');
+const Order = require('../../Models/Order');
+const Client = require('../../Models/Client');
+const Invoice = require('../../Models/Invoice');
+const helper = require('../../Helpers/helper');
 
-let cors = require('cors');
-router.use(cors());
-
-/**
- *@description here multer is using for files
- * @type {multer}
- */
-const multer = require('multer');
-
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './uploads/order_files/');
-    },
-    filename: function(req, file, cb) {
-        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString()+ file.originalname);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    // reject a file
-
-    cb(null, true);
-    // if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-    //     cb(null, true);
-    // } else {
-    //     cb(null, false);
-    // }
-};
-
-const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter
-});
-
-/**
- * @access private
- * @description Create New
- * @route api/order
- * @method POST
- */
-router.post('/', auth, upload.single('order_form'), validator.check_order, Controller.create);
-
-/**
- * @access private
- * @description Update Info
- * @route api/order/update/:item_id
- * @method PUT
- */
-router.put('/update/:order_id', auth,upload.single('order_form'), Controller.update);
-
-/**
- * @access private
- * @description Get All Order Info
- * @route api/order/
- * @method GET
- */
-router.get('/', auth, Controller.get);
-
-/**
- * @access private
- * @description Get Specific Order Info
- * @route api/order/order_id
- * @method GET
- */
-router.get('/:order_id', auth, Controller.order_by_id);
-
-/**
- * @access private
- * @description Filter Order Info
- * @route api/order/filter
- * @method POST
- */
-router.post('/filter', auth, upload.any(), Controller.filter);
-
-/**
- * @access private
- * @description Get All Deleted Client Info
- * @route api/client/deleted_all
- * @method GET
- */
-router.get('/deleted_all', auth, Controller.deleted_order);
-
-/**
- * @type {Router}
- * @access private
- * @description Delete an Item
- * @route api/client/delete/:item_id
- * @method DELETE
- *
- */
-router.delete('/:order_id', auth, Controller.delete);
-
-module.exports = router;
-/*
-
-const express = require('express');
-const auth = require('../../middleware/auth');
-const router = express.Router();
-const {check, validationResult} = require('express-validator');
-const Order = require('../../App/Models/Order');
-const Client = require('../../App/Models/Client');
-const Invoice = require('../../App/Models/Invoice');
-const helper = require('../../controller/helper');
-
-const multer = require('multer');
-
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './uploads/order_files/');
-    },
-    filename: function(req, file, cb) {
-        cb(null, new Date().getMilliseconds().toString() + new Date().getDay().toString() + new Date().getMinutes().toString()+ file.originalname);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    // reject a file
-
-    cb(null, true);
-    // if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-    //     cb(null, true);
-    // } else {
-    //     cb(null, false);
-    // }
-};
-
-const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter
-});
-
-
-//Save an order
-//Access Private
-router.post('/',
-    [
-        auth,
-        [
-            check('client', 'Please Select A Client').not().isEmpty(),
-            check('lender_or_bank_name', 'Lender name is required').not().isEmpty(),
-            check('lender_street', 'Lender Street is required').not().isEmpty(),
-            check('lender_city', 'Lender City is required').not().isEmpty(),
-            check('lender_state', 'Lender State is required').not().isEmpty(),
-            check('lender_zip_code', 'Lender Zip Code is required').not().isEmpty(),
-            check('property_street', 'Property street is required').not().isEmpty(),
-            check('property_city', 'Property city is required').not().isEmpty(),
-            check('property_state', 'Property state is required').not().isEmpty(),
-            check('property_zip_code', 'Property Zip Code is required').not().isEmpty(),
-            check('property_country', 'Property Country is required').not().isEmpty(),
-            check('borrower_name', 'Borrower name is required').not().isEmpty(),
-            check('borrower_phone', 'Borrower mobile is required').not().isEmpty(),
-            check('borrower_email', 'Borrower email is required').not().isEmpty(),
-            check('appraisal_type', 'Please Select A Appraisal Tpes').not().isEmpty(),
-            check('client_order', 'Client order is required').not().isEmpty(),
-            check('loan_type', 'Loan type is required').not().isEmpty(),
-            check('appraisar_name', 'Appraisar name is required').not().isEmpty(),
-            // check('order_form', 'Order Form is required').not().isEmpty(),
-            check('price', 'Appraisal Price is required').not().isEmpty()
-        ],
-
-        upload.single('order_form'),
-    ],
-    async (req, res, next) => {
-        // Validate LoanType Name
-
-        //console.log(req.file);
-
+module.exports = {
+    create: async (req, res) => {
         const errors = validationResult(req.body);
         if (!errors.isEmpty()) {
             return res.status(401).json({errors: errors.array()});
@@ -302,36 +137,9 @@ router.post('/',
             console.error(err.message);
             return res.status(500).send(err.message);
         }
-    }
-);
+    },
 
-function generate_invoice()
-{
-    return "INV" + Math.floor(1000 + Math.random() * 9000) + new Date().getFullYear().toString()
-        + new Date().getMilliseconds().toString();
-}
-
-function generate_order_no()
-{
-    return "BAS"+Math.floor(10000 + Math.random() * 90000) + new Date().getMilliseconds().toString();
-
-}
-
-function generate_client_order()
-{
-    return  Math.floor(10000 + Math.random() * 90000) + new Date().getMilliseconds().toString();
-
-}
-
-//@route PUT api/order/update
-//@access Private
-//@desc Update Order Module
-router.put('/update/:order_id',
-    [
-        auth,
-        upload.single('order_form'),
-    ],
-    async (req, res) => {
+    update : async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({errors: errors.array()})
@@ -444,13 +252,9 @@ router.put('/update/:order_id',
             console.log(e.message);
             return res.status(500).send('Server Error');
         }
-    });
+    },
 
-//Get All Orders
-//Access private
-router.get(
-    '/',auth,
-    async (req, res) => {
+    get : async (req, res) => {
         try {
             const order = await Order.find({isDeleted: false}).populate('loan_type').populate('order_generated_by',['email']).select('-password');
             return await res.json(order);
@@ -459,13 +263,19 @@ router.get(
             console.error(e.message);
             return res.status(500).send("Server Error")
         }
-    });
+    },
 
-//Get All Deleted Orders
-//Access private
-router.get(
-    '/deleted_all',auth,
-    async (req, res) => {
+    order_by_id: async (req, res) =>{
+        try {
+            const order = await Order.findOne({_id: req.params.order_id}).populate(['loan_type','appraisal_type']);
+            return await res.json(order);
+        } catch (e) {
+            console.error(e.message);
+            return res.status(500).send("Server Error")
+        }
+    },
+
+    deleted_order: async (req, res) =>{
         try {
             if (req.user.type !== 'Admin'){
                 return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
@@ -478,104 +288,80 @@ router.get(
             console.error(e.message);
             return res.status(500).send("Server Error")
         }
-    });
+    },
 
-
-//Get a specific order
-//Access Private
-router.get('/:order_id',
-    auth,
-    async (req, res) => {
+    filter: async (req, res) => {
+        let order_no = req.body.order_no;
+        let start_date = req.body.start_date;
+        let end_date = req.body.end_date;
+        // let client_name = req.body.client_name;
         try {
-            const order = await Order.findOne({_id: req.params.order_id}).populate(['loan_type','appraisal_type']);
-            return await res.json(order);
+
+            if (order_no && start_date && end_date)
+            {
+                const order = await Order.find({
+                    created_at: {
+                        $gte: new Date(start_date),
+                        $lt: new Date(end_date)
+                    },order_no: order_no
+                }).populate(['loan_type','appraisal_type']);
+
+                return await res.json(order);
+            }
+            if (order_no)
+            {
+                const order = await Order.find({order_no: order_no}).populate(['loan_type','appraisal_type']);
+                return await res.json(order);
+            }
+            if (start_date && end_date)
+            {
+                const order = await Order.find({
+                    created_at: {
+                        $gte: new Date(start_date),
+                        $lt: new Date(end_date)
+                    }
+                }).populate(['loan_type','appraisal_type']);
+
+                return await res.json(order);
+            }
+
+            // if (client_name)
+            // {
+            //     return await res.json(Order.find({client_name: { $regex: '.*' + client_name + '.*' } }).populate(['loan_type','appraisal_type']));
+            // }
+
         } catch (e) {
             console.error(e.message);
             return res.status(500).send("Server Error")
         }
-    });
-//@route DELETE api/order/delete
-//@desc  Soft Delete Order
-//@access  Private
-router.delete('/delete/:order_id', auth, async (req, res) => {
-    try {
-        if (req.user.type !== 'Admin'){
-            return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
-        }
-        const orderFields ={};
-        orderFields.isDeleted =true;
-        if (await Order.findOneAndUpdate({_id: req.params.order_id},{$set: orderFields})){
-            return  res.json({msg: "Order Deleted Successfully"});
-        }
-        return res.status(500).json({ msg: "Something went wrong !!"})
-    } catch (e) {
-        console.error(e.message);
-        res.status(500).send("Server Error")
-    }
-});
-//@route DELETE api/order
-//@desc  Delete Order
-//@access  Private
-router.delete('/:order_id', auth, async (req, res) => {
-    try {
-        if (await Order.findOneAndRemove({_id: req.params.order_id})){
-            return  res.json({msg: "Order Deleted Successfully"});
-        }
-        return res.status(500).json({ msg: "Something went wrong !!"})
-    } catch (e) {
-        console.error(e.message);
-        res.status(500).send("Server Error")
-    }
-});
-// @route POST api/order/filter
-// Access Private
-router.post('/filter',auth,upload.any(), async (req, res) => {
-    //return res.send(req.body.order_no);
-    let order_no = req.body.order_no;
-    let start_date = req.body.start_date;
-    let end_date = req.body.end_date;
-    // let client_name = req.body.client_name;
-    try {
+    },
 
-        if (order_no && start_date && end_date)
-        {
-            const order = await Order.find({
-                created_at: {
-                    $gte: new Date(start_date),
-                    $lt: new Date(end_date)
-                },order_no: order_no
-            }).populate(['loan_type','appraisal_type']);
-
-            return await res.json(order);
-        }
-        if (order_no)
-        {
-            const order = await Order.find({order_no: order_no}).populate(['loan_type','appraisal_type']);
-            return await res.json(order);
-        }
-        if (start_date && end_date)
-        {
-            const order = await Order.find({
-            created_at: {
-                $gte: new Date(start_date),
-                $lt: new Date(end_date)
+    delete : async (req, res) => {
+        try {
+            if (await Order.findOneAndRemove({_id: req.params.order_id})){
+                return  res.json({msg: "Order Deleted Successfully"});
             }
-        }).populate(['loan_type','appraisal_type']);
-
-            return await res.json(order);
+            return res.status(500).json({ msg: "Something went wrong !!"})
+        } catch (e) {
+            console.error(e.message);
+            res.status(500).send("Server Error")
         }
-
-        // if (client_name)
-        // {
-        //     return await res.json(Order.find({client_name: { $regex: '.*' + client_name + '.*' } }).populate(['loan_type','appraisal_type']));
-        // }
-
-    } catch (e) {
-        console.error(e.message);
-        return res.status(500).send("Server Error")
     }
+};
+function generate_invoice()
+{
+    return "INV" + Math.floor(1000 + Math.random() * 9000) + new Date().getFullYear().toString()
+        + new Date().getMilliseconds().toString();
+}
 
-   //
+function generate_order_no()
+{
+    return "BAS"+Math.floor(10000 + Math.random() * 90000) + new Date().getMilliseconds().toString();
 
-});
-module.exports = router;*/
+}
+
+function generate_client_order()
+{
+    return  Math.floor(10000 + Math.random() * 90000) + new Date().getMilliseconds().toString();
+
+}
