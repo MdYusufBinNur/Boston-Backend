@@ -36,6 +36,7 @@ app.use('/api/quick_book',require('./routes/api/quickbook'));
 app.use('/api/kb',require('./routes/api/knowledge_base'));
 app.use('/api/kb_category',require('./routes/api/kb_category'));
 app.use('/api/note',require('./routes/api/note_for_client'));
+app.use('/api/page',require('./routes/api/page'));
 
 
 
