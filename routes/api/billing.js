@@ -3,6 +3,9 @@ const auth = require('../../middleware/auth');
 const router = express.Router();
 const Controller = require('../../App/Http/Controllers/BillingController');
 
+let cors = require('cors');
+router.use(cors());
+
 /**
  *@description here multer is using for files
  * @type {multer}

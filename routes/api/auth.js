@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const validator = require('../../App/Validator/validator');
 const Controller = require('../../App/Http/Controllers/Auth/AuthController');
-var cors = require('cors');
+const cors = require('cors');
 router.use(cors());
 
 /**

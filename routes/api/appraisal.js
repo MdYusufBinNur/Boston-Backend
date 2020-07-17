@@ -1,11 +1,11 @@
 const express = require('express');
 const auth = require('../../middleware/auth');
 const router = express.Router();
-const {check, validationResult} = require('express-validator');
-const AppraisalType = require('../../App/Models/AppraisalType');
 const Controller = require('../../App/Http/Controllers/AppraisalController');
 const validator = require('../../App/Validator/validator');
 
+let cors = require('cors');
+router.use(cors());
 
 /**
  *@description here multer is using for files

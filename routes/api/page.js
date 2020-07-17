@@ -4,6 +4,9 @@ const router = express.Router();
 const validator = require('../../App/Validator/validator');
 const Controller = require('../../App/Http/Controllers/PageController');
 
+let cors = require('cors');
+router.use(cors());
+
 /**
  *@description here multer is using for files
  * @type {multer}

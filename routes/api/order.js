@@ -81,7 +81,7 @@ router.post('/filter', auth, upload.any(), Controller.filter);
 /**
  * @access private
  * @description Get All Deleted Client Info
- * @route api/client/deleted_all
+ * @route api/order/deleted_all
  * @method GET
  */
 router.get('/deleted_all', auth, Controller.deleted_order);
@@ -90,11 +90,27 @@ router.get('/deleted_all', auth, Controller.deleted_order);
  * @type {Router}
  * @access private
  * @description Delete an Item
- * @route api/client/delete/:item_id
+ * @route api/order/:item_id
  * @method DELETE
  *
  */
 router.delete('/:order_id', auth, Controller.delete);
+
+/**
+ *@description get in scheduled order
+ * @access Private
+ * @route api/order/get/pending_orders
+ * @type {Router}
+ */
+router.get('/get/pending_orders', auth, Controller.pending_order);
+
+/**
+ *@description get in scheduled order
+ * @access Private
+ * @route api/order/get/missed_inceptions
+ * @type {Router}
+ */
+router.get('/get/missed_inceptions_orders', auth, Controller.missed_inceptions_orders);
 
 module.exports = router;
 /*

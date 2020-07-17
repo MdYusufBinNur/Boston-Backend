@@ -3,6 +3,7 @@ const Order = require('../../Models/Order');
 const Client = require('../../Models/Client');
 const Invoice = require('../../Models/Invoice');
 const helper = require('../../Helpers/helper');
+const Constant = require('../../Helpers/constant');
 
 module.exports = {
     create: async (req, res) => {
@@ -33,12 +34,10 @@ module.exports = {
             contact_person_email,
             appraisal_type,
             loan,
-            client_order,
             loan_type,
             appraisal_fee,
             appraisar_name,
             due_date,
-            order_form,
             note,
             order_status,
             price,
@@ -50,7 +49,6 @@ module.exports = {
             // Save Order In DB
             const orderFields = {};
             const invoiceFields = {};
-
             let invoiceId = generate_invoice();
             let newOrderNo = generate_order_no();
             let clientOrderNo = generate_client_order();
@@ -346,7 +344,79 @@ module.exports = {
             console.error(e.message);
             res.status(500).send("Server Error")
         }
-    }
+    },
+
+    pending_order: async (req, res) => {
+        try{
+            let pending_orders = await Order.find(
+                {
+                    $or:[
+                        {
+                            order_status: Constant.STATUS_IN_SCHEDULE
+                        },
+                        {
+                            order_status: Constant.STATUS_TO_BE_SCHEDULED
+                        }
+                    ],
+                    isDeleted: false,
+                }
+            ).populate('loan_type').populate('order_generated_by',['email']).select('-password');
+
+            // const mapData = pending_orders.map(row => ({
+            //     Order: row.order_no,
+            //     Status: row.order_status,
+            //     Client_Order: row.client_order,
+            // }));
+            //
+            // const csvFile = helper.generate_csv(mapData);
+            // helper.download_csv(csvFile);
+            return res.status(200).json(csvFile);
+        }catch (e) {
+            console.log(e.message);
+            return res.status(500).json({msg: "Server Error"})
+        }
+    },
+
+    missed_inceptions_orders: async (req, res) => {
+        try{
+            let pending_orders = await Order.find(
+                {
+                    $or:[
+                        {
+                            order_status: Constant.STATUS_ON_HOLD
+                        }
+                    ],
+                    isDeleted: false,
+                }
+            ).populate('loan_type').populate('order_generated_by',['email']).select('-password');
+
+            return res.status(200).json(pending_orders);
+        }catch (e) {
+            console.log(e.message);
+            return res.status(500).json({msg: "Server Error"})
+        }
+    },
+
+    task_overdue: async (req, res) => {
+        try{
+            let overdue_tasks = await Order.find(
+                {
+                    $or:[
+                        {
+                            order_status: Constant.STATUS_ON_HOLD
+                        }
+                    ],
+                    isDeleted: false,
+                }
+            ).populate('loan_type').populate('order_generated_by',['email']).select('-password');
+
+            return res.status(200).json(overdue_tasks);
+        }catch (e) {
+            console.log(e.message);
+            return res.status(500).json({msg: "Server Error"})
+        }
+    },
+
 };
 function generate_invoice()
 {
