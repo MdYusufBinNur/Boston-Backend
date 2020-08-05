@@ -2,7 +2,7 @@ const {validationResult} = require('express-validator');
 const Invoice = require('../../Models/Invoice');
 
 module.exports = {
-    create: async function(req, res){
+    create: async function (req, res) {
         const errors = validationResult(req.body);
         if (!errors.isEmpty()) {
             return res.status(401).json({errors: errors.array()});
@@ -69,7 +69,7 @@ module.exports = {
         }
     },
 
-    update : async function(req, res) {
+    update: async function (req, res) {
         const {
             address_one,
             address_two,
@@ -81,8 +81,8 @@ module.exports = {
             price,
             total_amount,
             appraisal_fee,
-            isDeleted
-
+            isDeleted,
+            order
         } = req.body;
         try {
             const invoiceFields = {};
@@ -113,6 +113,12 @@ module.exports = {
                 invoiceFields.total_amount = total_amount;
 
             //return res.send(invoiceFields)
+            if (order) {
+                await Invoice.findOneAndUpdate(
+                    {order: order},
+                    {$set: invoiceFields},
+                    {new: true})
+            }
             await Invoice.findOneAndUpdate(
                 {_id: req.params.invoice_id},
                 {$set: invoiceFields},
@@ -126,7 +132,7 @@ module.exports = {
         }
     },
 
-    get : async function (req, res) {
+    get: async function (req, res) {
         try {
             const invoices = await Invoice.find(
                 {
@@ -141,17 +147,17 @@ module.exports = {
         }
     },
 
-    delete : async function(req, res) {
+    delete: async function (req, res) {
         try {
-            if (req.user.type !== 'Admin'){
+            if (req.user.type !== 'Admin') {
                 return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
             }
 
-            if (await Invoice.findOneAndRemove({_id: req.params.invoice_id})){
+            if (await Invoice.findOneAndRemove({_id: req.params.invoice_id})) {
                 return await res.json({msg: "Invoice Deleted Successfully"});
             }
 
-            return res.status(500).json({ msg: "Server Error"})
+            return res.status(500).json({msg: "Server Error"})
         } catch (e) {
 
             console.error(e.message);
@@ -160,7 +166,7 @@ module.exports = {
         }
     },
 
-    deleted_invoice: async function(req, res){
+    deleted_invoice: async function (req, res) {
         try {
             if (req.user.type !== 'Admin') {
                 return res.status(401).json({errors: [{msg: "Access Denied !!!"}]})
@@ -175,7 +181,7 @@ module.exports = {
         }
     },
 
-    invoice_by_id: async function(req, res) {
+    invoice_by_id: async function (req, res) {
         try {
             const invoice = await Invoice.findOne({
                 _id: req.params.invoice_id

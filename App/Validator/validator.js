@@ -98,7 +98,7 @@ exports.check_order =
         check('appraisal_type', 'Please Select A Appraisal Tpes').not().isEmpty(),
         check('client_order', 'Client order is required').not().isEmpty(),
         check('loan_type', 'Loan type is required').not().isEmpty(),
-        check('appraisar_name', 'Appraisar name is required').not().isEmpty(),
+        check('appraiser_name', 'Appraiser name is required').not().isEmpty(),
         // check('order_form', 'Order Form is required').not().isEmpty(),
         check('price', 'Appraisal Price is required').not().isEmpty()
     ];
@@ -107,6 +107,7 @@ exports.check_payment =
     [
         check('invoice', 'Please Select A Invoice').not().isEmpty(),
     ];
+
 exports.check_cheque_no =
     [
         check('cheque_no', 'Please Input Cheque Number').not().isEmpty(),
@@ -139,6 +140,7 @@ exports.check_user =
         check('email', 'Please input a valid email').isEmail(),
         check('password', 'Please enter password with 6 or more character').isLength({min: 6})
     ];
+
 exports.check_login =
     [
         check('email', 'Please input a valid email').isEmail(),

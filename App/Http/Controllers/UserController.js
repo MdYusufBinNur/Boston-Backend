@@ -243,5 +243,22 @@ module.exports = {
             }
             res.status(500).send("Server Error")
         }
+    },
+
+    get_appraiser: async (req, res) => {
+        try {
+            const profile = await Profile.find({isDeleted: false})
+                .populate({
+                    path: 'user',
+
+                    select:  ['email', 'active','user_type']
+                });
+
+            return res.status(200).json(profile);
+
+        } catch (e) {
+            console.error(e.message);
+            res.status(500).send("Server Error")
+        }
     }
 };

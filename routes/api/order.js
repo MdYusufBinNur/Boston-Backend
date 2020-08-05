@@ -23,14 +23,7 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    // reject a file
-
-    cb(null, true);
-    // if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-    //     cb(null, true);
-    // } else {
-    //     cb(null, false);
-    // }
+   cb(null, true);
 };
 
 const upload = multer({
@@ -52,7 +45,8 @@ router.post('/', auth, upload.single('order_form'), validator.check_order, Contr
  * @route api/order/update/:item_id
  * @method PUT
  */
-router.put('/update/:order_id', auth,upload.single('order_form'), Controller.update);
+router.put('/update/:order_id', auth, upload.single('order_form'), Controller.update);
+
 
 /**
  * @access private
@@ -111,6 +105,22 @@ router.get('/get/pending_orders', auth, Controller.pending_order);
  * @type {Router}
  */
 router.get('/get/missed_inceptions_orders', auth, Controller.missed_inceptions_orders);
+
+/**
+ *@description get all status
+ * @access Private
+ * @route api/order/get/get_status
+ * @type {Router}
+ */
+router.get('/get/get_status', auth, Controller.get_status);
+
+/**
+ *@description get status with count
+ * @access Private
+ * @route api/order/get/get_status_count
+ * @type {Router}
+ */
+router.get('/get/get_status_count', auth, Controller.get_status_count);
 
 module.exports = router;
 /*

@@ -138,7 +138,7 @@ module.exports = {
 
     get : async function (req, res) {
         try {
-            const client = await Client.find({isDeleted: false});
+            const client = await Client.find({isDeleted: false}).select('-password');
             await res.json(client);
 
         } catch (e) {

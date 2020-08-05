@@ -36,15 +36,22 @@ module.exports = {
             loan,
             loan_type,
             appraisal_fee,
-            appraisar_name,
+            appraiser_name,
             due_date,
+            inspection_date,
+            last_call_date,
             note,
             order_status,
             price,
-            total_amount
+            total_amount,
+            fha_case,
+            same_borrower
 
         } = req.body;
+        //return res.json(appraisal_type);
+
         try {
+
 
             // Save Order In DB
             const orderFields = {};
@@ -57,7 +64,6 @@ module.exports = {
             {
                 return res.send({msg: "No Client Found"});
             }
-
 
             if (await Order.findOne({order_no: newOrderNo})){
                 newOrderNo = generate_invoice();
@@ -93,16 +99,25 @@ module.exports = {
             if (contact_person_name) orderFields.contact_person_name = contact_person_name;
             if (contact_person_phone) orderFields.contact_person_phone = contact_person_phone;
             if (contact_person_email) orderFields.contact_person_email = contact_person_email;
-            if (price) orderFields.price = price;
+            if (same_borrower) {
+                orderFields.contact_person_name = borrower_name;
+                orderFields.contact_person_phone = borrower_phone;
+                orderFields.contact_person_email = borrower_email;
+            }
+            if (price) {
+                orderFields.price = price.split(',').map(price => price.trim());
+            }
             if (appraisal_type) {
-                orderFields.appraisal_type = appraisal_type.split(',').map(appraisal_type => appraisal_type.trim());
+                orderFields.appraisal_type = appraisal_type;
+                // orderFields.appraisal_type = appraisal_type.split(',').map(appraisal_type => appraisal_type.trim());
             }
             if (loan) orderFields.loan = loan;
             if (loan_type) orderFields.loan_type = loan_type;
             if (appraisal_fee) orderFields.appraisal_fee = appraisal_fee;
-            if (appraisar_name) orderFields.appraisar_name = appraisar_name;
+            if (appraiser_name) orderFields.appraiser_name = appraiser_name;
             if (due_date) orderFields.due_date = due_date;
             if (note) orderFields.note = note;
+            if (fha_case) orderFields.fha_case = fha_case;
             if (order_status) orderFields.order_status = order_status;
             if (req.file) orderFields.order_form = req.file.path;
             orderFields.client_order = clientOrderNo;
@@ -123,11 +138,13 @@ module.exports = {
                 invoiceFields.description = order.appraisal_type;
                 invoiceFields.price = order.price;
                 invoiceFields.appraisal_fee = order.appraisal_fee;
-                if (total_amount) invoiceFields.total_amount = total_amount;
+                // if (total_amount) invoiceFields.total_amount = total_amount;
+                invoiceFields.total_amount =  orderFields.price.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
                 let invoice = new Invoice(invoiceFields);
+                let order_info = await Order.findOne({_id: order.id}).populate('client',['first_name','last_name', 'company_name']);
                 if (await invoice.save())
                 {
-                    return res.status(200).json({msg: "New order has been placed successfully, Invoice  " + invoice.invoice_id});
+                    return res.status(200).json({msg: "New order has been placed successfully, Invoice " + invoice.invoice_id, order: order_info});
                 }
                 return res.send({error: "Order Placed But Failed To Generate Invoice !!!"})
             }
@@ -167,7 +184,7 @@ module.exports = {
             client_order,
             loan_type,
             appraisal_fee,
-            appraisar_name,
+            appraiser_name,
             due_date,
             inspection_date,
             last_call_date,
@@ -175,11 +192,14 @@ module.exports = {
             note,
             order_status,
             price,
-            isDeleted
+            isDeleted,
+            fha_case
         } = req.body;
 
         try {
             const orderFields = {};
+            const invoiceFields = {};
+
             if (client) orderFields.client = client;
             if (lender_or_bank_name) orderFields.lender_or_bank_name = lender_or_bank_name;
             if (lender_street) orderFields.lender_street = lender_street;
@@ -194,41 +214,75 @@ module.exports = {
             if (property_on_map) orderFields.property_on_map = property_on_map;
             if (borrower_name) orderFields.borrower_name = borrower_name;
             if (co_borrower_name) orderFields.co_borrower_name = co_borrower_name;
-            if (price) orderFields.price = price;
-            if (borrower_phone) {
-                orderFields.borrower_phone = borrower_phone.split(',').map(borrower_phone => borrower_phone.trim());
+
+            if (price) {
+                orderFields.price = price;
             }
+            if (borrower_phone) orderFields.borrower_phone = borrower_phone;
+            // if (borrower_phone) {
+            //     orderFields.borrower_phone = borrower_phone.split(',').map(borrower_phone => borrower_phone.trim());
+            // }
             if (borrower_email) orderFields.borrower_email = borrower_email;
             if (contact_person_name) orderFields.contact_person_name = contact_person_name;
-            if (contact_person_phone){
-                orderFields.contact_person_phone = contact_person_phone.split(',').map(contact_person_phone => contact_person_phone.trim());
-            }
+            if (contact_person_phone) orderFields.contact_person_phone = contact_person_phone;
+            // if (contact_person_phone){
+            //     orderFields.contact_person_phone = contact_person_phone.split(',').map(contact_person_phone => contact_person_phone.trim());
+            // }
             if (contact_person_email) orderFields.contact_person_email = contact_person_email;
             if (appraisal_types) {
-                orderFields.appraisal_types = appraisal_types.split(',').map(appraisal_types => appraisal_types.trim());
+                orderFields.appraisal_type = appraisal_types.split(',').map(appraisal_types => appraisal_types.trim());
             }
             if (loan) orderFields.loan = loan;
             if (client_order) orderFields.client_order = client_order;
             if (loan_type) orderFields.loan_type = loan_type;
             if (appraisal_fee) orderFields.appraisal_fee = appraisal_fee;
-            if (appraisar_name) orderFields.appraisar_name = appraisar_name;
+            if (appraiser_name) orderFields.appraiser_name = appraiser_name;
             if (due_date) orderFields.due_date = due_date;
             if (last_call_date) orderFields.last_call_date = last_call_date;
-            if (inspection_date) orderFields.inspection_date = inspection_date;
-            if (order_form) orderFields.order_form = order_form;
+            if (inspection_date) orderFields.inspection_date = format_date(inspection_date);
+            // if (order_form) orderFields.order_form = order_form;
             if (note) orderFields.note = note;
             if (order_status) orderFields.order_status = order_status;
             if (isDeleted) orderFields.isDeleted = isDeleted;
-            if (order_form) orderFields.order_form = req.file.path;
-
+             if (req.file) orderFields.order_form = req.file.path;
+            if (fha_case) orderFields.fha_case  = req.fha_case;
             //Update Order Filed
-            let order_update = await Order.findOneAndUpdate({_id : req.params.order_id},{$set: orderFields}, {new : true});
+
+            let order_update = await Order.findOneAndUpdate(
+                {_id : req.params.order_id},
+                {$set: orderFields},
+                {new : true})
+                .populate('client',['first_name','last_name', 'company_name']).sort({'inspection_date' : -1})
+            ;
+
             if (order_update){
+                const client_info = await Client.findOne({_id: client});
+
+                if (client) invoiceFields.client = client;
+                if (client_info){
+                    invoiceFields.city = client_info.city;
+                    invoiceFields.address_one = client_info.address;
+                    invoiceFields.state = client_info.state;
+                    invoiceFields.zip_code = client_info.zip_code;
+                    invoiceFields.phone = client_info.phones;
+                }
+
+                if (price) invoiceFields.price = price;
+                invoiceFields.appraisal_fee = appraisal_fee;
+                // if (total_amount) invoiceFields.total_amount = total_amount;
+                invoiceFields.total_amount =  invoiceFields.price.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+                let invoices = await Invoice.findOne({order: req.params.order_id});
+                if (invoices)
+                {
+                    await Invoice.findOneAndUpdate(
+                        {order: req.params.order_id},
+                        {$set: invoiceFields}
+                    );
+                }
                 if (order_status) {
                     if (order_status === "delivered") {
-                        let invoices = await Invoice.findOne({order: req.params.order_id});
-                        //let quickBookFields = {};
 
+                        //let quickBookFields = {};
                         if (invoices){
                             let QbData = {};
                             QbData.invoice = invoices.id;
@@ -239,10 +293,10 @@ module.exports = {
                             let QB = helper.sync_to_qb(QbData);
                             return res.status(200).json({msg: "Order Updated and " + QB});
                         }
-                        return res.status(200).json({msg: "Order Updated"});
+                        return res.status(200).json({msg: "Order Updated", order: order_update});
                     }
                 }
-                return res.status(200).json({ msg : 'Order Updated'});
+                return res.status(200).json({ msg : 'Order Updated',order: order_update});
             }
             return res.status(500).json({errors : { msg: 'Something went wrong !!!'}})
 
@@ -254,7 +308,8 @@ module.exports = {
 
     get : async (req, res) => {
         try {
-            const order = await Order.find({isDeleted: false}).populate('loan_type').populate('order_generated_by',['email']).select('-password');
+            const order = await Order.find({isDeleted: false}).populate('loan_type').populate('client',['first_name','last_name', 'company_name']).populate('order_generated_by',['email']).select('-password').sort({created_at: -1});
+
             return await res.json(order);
 
         } catch (e) {
@@ -417,6 +472,50 @@ module.exports = {
         }
     },
 
+    get_status_count: async (req, res) => {
+        try {
+            // const result =await Order.find({isDeleted: false}).distinct('order_status').count();
+            const result =await Order.aggregate(
+                { $match: { seller: user, status: 'completed'  } },
+                { $group: { _id: '$customer', count: {$sum: 1} } }
+            ).exec() ;
+            return res.status(200).json({result})
+        }catch (e) {
+            console.log(e.message);
+            return res.status(500).json({msg: "Server Error"})
+        }
+
+    },
+
+    get_status: async (req, res) => {
+        try {
+            const agg = [
+                {$group: {
+                        _id: "$order_status",
+
+                        // SUCCESS!!! :D
+                        number: {$sum: 1}
+                    }}
+            ];
+
+            let results = await  Order.aggregate(agg, function(err, logs){
+                if (err) {
+                    console.log(err)
+                }
+            });
+
+
+            const colors = ['red','purple','indigo','teal','light-green','brown','blue-grey','deep-orange','pink','green','deep-purple','indigo','teal','light-green','brown','blue-grey','deep-orange','pink','green',];
+            for (let item = 0; item<results.length ; item++){
+                results[item].color = colors[item];
+            }
+            return res.status(200).json(results)
+        }catch (e) {
+            console.log(e.message)
+            return res.status(500).json({msg: "Server Error"})
+        }
+    }
+
 };
 function generate_invoice()
 {
@@ -434,4 +533,12 @@ function generate_client_order()
 {
     return  Math.floor(10000 + Math.random() * 90000) + new Date().getMilliseconds().toString();
 
+}
+
+function format_date(data) {
+    const d = new Date(data);
+    const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(d);
+    const mo = new Intl.DateTimeFormat('en', { month: 'short' }).format(d);
+    const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(d);
+    return `${da}-${mo}-${ye}`;
 }

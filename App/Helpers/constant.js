@@ -12,6 +12,3 @@ module.exports = Object.freeze({
     STATUS_PCR_COMPLETED: 'pcr_completed',
     STATUS_ON_HOLD: 'on_hold',
 });
-
-
-

@@ -9,7 +9,7 @@ const OrderSchema = new mongoose.Schema({
 
     order_status: {
         type: String,
-        default: "on_hold"
+        default: "On Hold"
     },
 
     client: {
@@ -109,7 +109,7 @@ const OrderSchema = new mongoose.Schema({
     },
 
     price: {
-        type: Number,
+        type:[Number],
         required: true
     },
 
@@ -133,13 +133,14 @@ const OrderSchema = new mongoose.Schema({
         type: Number
     },
 
-    appraisar_name: {
+    appraiser_name: {
         type: String,
         required: true
     },
 
     due_date: {
         type: Date,
+
     },
 
     inspection_date: {
@@ -166,6 +167,10 @@ const OrderSchema = new mongoose.Schema({
     order_generated_by:{
         type: mongoose.Schema.Types.ObjectID,
         ref: 'user'
+    },
+
+    fha_case:{
+        type: String
     },
 
     isDeleted: {

@@ -83,6 +83,16 @@ router.put('/update/:user_id', auth, upload.any(), Controller.update);
  */
 router.delete('/:user_id', auth, Controller.delete);
 
+/**
+ * @type {Router}
+ * @access private
+ * @description Delete an Item
+ * @route api/user/type/appraiser
+ * @method GET
+ *
+ */
+router.get('/type/appraiser',  Controller.get_appraiser);
+
 module.exports = router;
 
 /*
